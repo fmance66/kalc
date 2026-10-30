@@ -1,0 +1,8 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+
+dist-lib/
+# el paquete de npm pack (npm run pack lo deja en packs/): se copia a la aplicación que lo usa, no se commitea acá
+packs/
+*.tgz

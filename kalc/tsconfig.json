@@ -1,0 +1,10 @@
+{
+  // Para el typecheck de todo motor/, con los tests (tsconfig.lib.json los deja afuera del paquete).
+  "extends": "./tsconfig.lib.json",
+  "include": ["motor/**/*.ts"],
+  "exclude": [],
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  }
+}

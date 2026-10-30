@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "variables": [
+    {
+      "nombre": "PI",
+      "tipo": "numero",
+      "origen": {
+        "clase": "formula",
+        "texto": "PI()"
+      },
+      "descripcion": "Valor de PI"
+    }
+  ]
+}

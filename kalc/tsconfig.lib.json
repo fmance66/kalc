@@ -1,0 +1,29 @@
+{
+  // Librería: el motor (motor/, sin Vue ni DOM) compilado a JavaScript con sus tipos, para
+  // usarlo desde otras aplicaciones. npm run build:lib → dist-lib/
+  "include": ["motor/**/*.ts"],
+  "exclude": ["motor/**/*.test.ts"],
+  "compilerOptions": {
+    "outDir": "dist-lib",
+    "rootDir": "motor",
+    "declaration": true,
+    "sourceMap": true,
+    // El paquete no lleva motor/: el código va dentro del .map para poder depurar igual
+    "inlineSources": true,
+    "target": "ES2022",
+    // Sin DOM: el motor no puede depender del navegador. ES2022: así anda también en
+    // Node 18 (sin toSorted, Object.groupBy, etc.)
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    // Los imports llevan .ts (para correr en Node sin compilar): al compilar pasan a .js
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "types": []
+  }
+}

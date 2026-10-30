@@ -1,0 +1,110 @@
+<mxfile host="drawio">
+  <diagram id="arquitectura" name="Arquitectura">
+    <mxGraphModel dx="1100" dy="720" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="800" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="titulo" value="&lt;b&gt;Kalc: las tres partes, en desarrollo&lt;/b&gt; (cada recuadro grande es una carpeta del repositorio)" style="text;html=1;align=left;verticalAlign=middle;fontSize=18;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="20" y="10" width="800" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- kalc-frontend: la aplicación -->
+        <mxCell id="frontend" value="&lt;b&gt;kalc-frontend&lt;/b&gt; · la aplicación" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#f3faf1;strokeColor=#82b366;dashed=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="420" height="240" as="geometry" />
+        </mxCell>
+        <mxCell id="app" value="&lt;b&gt;App&lt;/b&gt; · src/&lt;br&gt;Vue 3 + PrimeVue · Vite en el 7200&lt;br&gt;Probador · Variables · Funciones · Ayuda&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Kalc en &lt;code&gt;paquetes/kalc-X.Y.Z.tgz&lt;/code&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="115" width="380" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="persistencia" value="&lt;b&gt;persistencia/&lt;/b&gt;&lt;br&gt;api.ts: con &lt;code&gt;VITE_API&lt;/code&gt;, en la base, a través de kalc-backend&lt;br&gt;localStorage.ts: sin &lt;code&gt;VITE_API&lt;/code&gt;, en el navegador (sin consultas)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="225" width="380" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- kalc: la librería -->
+        <mxCell id="kalc" value="&lt;b&gt;kalc&lt;/b&gt; · la librería" style="rounded=1;arcSize=3;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#fffaf3;strokeColor=#d79b00;dashed=1;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="20" y="370" width="420" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="libreria" value="&lt;b&gt;Motor&lt;/b&gt; · motor/&lt;br&gt;TypeScript puro (sin Vue, DOM ni base)&lt;br&gt;lexer → parser → evaluador · funciones&lt;br&gt;variables · consultas · tablas&lt;br&gt;&lt;code&gt;npm run pack&lt;/code&gt; → &lt;code&gt;packs/kalc-X.Y.Z.tgz&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontColor=#000000;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="405" width="380" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- kalc-backend -->
+        <mxCell id="backend" value="&lt;b&gt;kalc-backend&lt;/b&gt;&lt;br&gt;Node + Express · puerto 7201&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;Kalc en &lt;code&gt;paquetes/kalc-X.Y.Z.tgz&lt;/code&gt; · conexiones en su .env&lt;/font&gt;" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="760" y="80" width="320" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="index" value="&lt;b&gt;index.ts&lt;/b&gt;: lee el .env, abre un pool por&lt;br&gt;conexión (conexiones.ts) y escucha en el puerto" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="780" y="150" width="280" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="app" value="&lt;b&gt;app.ts&lt;/b&gt;: las rutas de la API&lt;br&gt;GET · PUT · DELETE &lt;code&gt;/api/variables&lt;/code&gt;&lt;br&gt;POST &lt;code&gt;/api/consultas/:nombre&lt;/code&gt;&lt;br&gt;GET &lt;code&gt;/api/conexiones&lt;/code&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="780" y="215" width="280" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="repoOracle" value="&lt;b&gt;repositorioOracle.ts&lt;/b&gt;&lt;br&gt;guarda las variables&lt;br&gt;(en ALMACEN)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="780" y="315" width="135" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="consultas" value="&lt;b&gt;consultas.ts&lt;/b&gt;&lt;br&gt;&lt;b&gt;postgres.ts&lt;/b&gt;&lt;br&gt;corren los SELECT&lt;br&gt;(solo lectura, en CONSULTAS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="925" y="315" width="135" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="oracleAlmacen" value="&lt;b&gt;Oracle&lt;/b&gt;&lt;br&gt;el almacén&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;motor_variables&lt;br&gt;(db/oracle/variables.sql)&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=10;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="780" y="445" width="135" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="oracle" value="&lt;b&gt;Oracle&lt;/b&gt;&lt;br&gt;una o varias bases&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;(las de las consultas)&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=10;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="925" y="445" width="135" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" value="&lt;b&gt;PostgreSQL&lt;/b&gt; local&lt;br&gt;base kalc&lt;br&gt;&lt;font style=&quot;font-size:11px&quot;&gt;juzgado · hr · scott · prueba&lt;br&gt;(db/postgres/crear.sql)&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=10;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="925" y="565" width="135" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Notas -->
+        <mxCell id="notaPartes" value="&lt;b&gt;Solo por el .tgz y por HTTP.&lt;/b&gt; La librería se usa solo por el paquete (&lt;code&gt;import … from 'kalc'&lt;/code&gt;). Al cambiarla: versión nueva, &lt;code&gt;npm run pack&lt;/code&gt; y copiar el .tgz a kalc-backend y kalc-frontend. La API se usa solo por HTTP: en desarrollo, Vite reenvía &lt;code&gt;/api&lt;/code&gt; al 7201." style="shape=note;size=12;whiteSpace=wrap;html=1;align=left;spacingLeft=6;spacingRight=6;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="20" y="690" width="520" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="notaIis" value="&lt;b&gt;En un servidor con IIS&lt;/b&gt; (http://servidor/kalc/) no hay Vite: el IIS sirve kalc-frontend compilado (&lt;code&gt;C:\inetpub\wwwroot\kalc&lt;/code&gt;, con su &lt;code&gt;npm run publicar&lt;/code&gt;) y su web.config reenvía &lt;code&gt;/kalc/api/&lt;/code&gt; a kalc-backend en el puerto 8082 (tarea &lt;code&gt;KalcBackend&lt;/code&gt;, en &lt;code&gt;C:\app\kalc-backend&lt;/code&gt;)." style="shape=note;size=12;whiteSpace=wrap;html=1;align=left;spacingLeft=6;spacingRight=6;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="560" y="690" width="520" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Flechas: la librería -->
+        <mxCell id="e2" value="import 'kalc' (el .tgz):&lt;br&gt;calcula en el navegador" style="endArrow=block;html=1;rounded=0;strokeColor=#d79b00;strokeWidth=2;dashed=1;fontSize=11;fontColor=#000000;labelBackgroundColor=#ffffff;exitX=0.8;exitY=1;entryX=0.8;entryY=0;" edge="1" parent="1" source="frontend" target="libreria">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="import 'kalc' (el .tgz): valida variables,&lt;br&gt;lee los :Nombre, convierte valores" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#d79b00;strokeWidth=2;dashed=1;fontSize=11;fontColor=#000000;labelBackgroundColor=#ffffff;exitX=0;exitY=0.91;entryX=1;entryY=0.71;" edge="1" parent="1" source="backend" target="libreria">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="380" />
+              <mxPoint x="600" y="501" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Flechas: HTTP -->
+        <mxCell id="e4" value="HTTP /api/…&lt;br&gt;(con VITE_API=/api)" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#9673a6;strokeWidth=2;fontSize=11;fontColor=#000000;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.552;" edge="1" parent="1" source="persistencia" target="backend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Flechas: adentro de kalc-backend -->
+        <mxCell id="e6" style="endArrow=block;html=1;rounded=0;strokeColor=#6c8ebf;" edge="1" parent="1" source="index" target="app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#6c8ebf;exitX=0.24;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="app" target="repoOracle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#6c8ebf;exitX=0.76;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="app" target="consultas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#666666;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="repoOracle" target="oracleAlmacen">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#666666;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="consultas" target="oracle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=0;strokeColor=#666666;exitX=1;exitY=0.75;entryX=1;entryY=0.5;" edge="1" parent="1" source="consultas" target="postgres">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1075" y="371" />
+              <mxPoint x="1075" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

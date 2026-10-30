@@ -1,0 +1,39 @@
+{
+  "name": "kalc",
+  "version": "1.7.0",
+  "private": true,
+  "description": "Kalc: motor de fórmulas con la sintaxis y el comportamiento de Excel (es-AR), con variables. Se usa desde otras aplicaciones instalando el .tgz.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist-lib/index.d.ts",
+      "import": "./dist-lib/index.js"
+    }
+  },
+  "files": [
+    "dist-lib",
+    "CHANGELOG.md",
+    "docs"
+  ],
+  "sideEffects": false,
+  "packageManager": "npm@11.20.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build:lib": "node -e \"require('fs').rmSync('dist-lib',{recursive:true,force:true})\" && tsc -p tsconfig.lib.json && node scripts/probar-lib.mjs && node scripts/generar-funciones.mjs",
+    "pack": "node -e \"require('fs').mkdirSync('packs',{recursive:true})\" && npm pack --pack-destination packs",
+    "prepack": "npm run build:lib",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json",
+    "preversion": "node scripts/fechar-changelog.mjs --verificar && npm test && npm run typecheck",
+    "version": "npm run build:lib && node scripts/fechar-changelog.mjs && git add CHANGELOG.md docs/funciones.md",
+    "postversion": "git push --follow-tags"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "typescript": "~6.0.0",
+    "vitest": "^5.0.1"
+  }
+}

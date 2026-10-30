@@ -1,0 +1,17 @@
+{
+  "name": "kalc-raiz",
+  "private": true,
+  "description": "Atajos para trabajar desde la carpeta raíz con las tres partes de Kalc. Sin dependencias: cada script corre adentro de su carpeta.",
+  "packageManager": "npm@11.20.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "start": "npm --prefix kalc-frontend start",
+    "dev": "npm --prefix kalc-frontend run dev",
+    "instalar": "npx npm@11 install --prefix kalc && npx npm@11 install --prefix kalc-backend && npx npm@11 install --prefix kalc-frontend",
+    "test": "npm --prefix kalc test && npm --prefix kalc-backend test && npm --prefix kalc-frontend test",
+    "typecheck": "npm --prefix kalc run typecheck && npm --prefix kalc-backend run typecheck && npm --prefix kalc-frontend run typecheck",
+    "pack": "npm --prefix kalc run pack"
+  }
+}

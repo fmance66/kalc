@@ -1,0 +1,436 @@
+{
+  "version": 1,
+  "variables": [
+    {
+      "nombre": "Neto",
+      "tipo": "numero",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "numero",
+          "valor": 1000
+        }
+      },
+      "descripcion": "Importe sin impuestos"
+    },
+    {
+      "nombre": "Alicuota",
+      "tipo": "numero",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "numero",
+          "valor": 0.21
+        }
+      },
+      "descripcion": "Alícuota de IVA (0,21 = 21 %)"
+    },
+    {
+      "nombre": "IVA",
+      "tipo": "numero",
+      "origen": {
+        "clase": "formula",
+        "texto": "REDONDEAR(Neto * Alicuota; 2)"
+      },
+      "descripcion": "IVA sobre el neto, redondeado a centavos"
+    },
+    {
+      "nombre": "Total",
+      "tipo": "numero",
+      "origen": {
+        "clase": "formula",
+        "texto": "Neto + IVA"
+      },
+      "descripcion": "Importe con IVA incluido"
+    },
+    {
+      "nombre": "Categoria",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "SI(Total > 1000; \"Mayor\"; \"Menor\")"
+      },
+      "descripcion": "Mayor o Menor según el total supere 1000"
+    },
+    {
+      "nombre": "Leyenda",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "\"Total: $ \" & TEXTO(Total; \"#.##0,00\")"
+      },
+      "descripcion": "El total como texto, con formato de moneda"
+    },
+    {
+      "nombre": "Vencimiento",
+      "tipo": "fecha",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "fecha",
+          "valor": 46387
+        }
+      },
+      "descripcion": "Fecha de vencimiento del pago"
+    },
+    {
+      "nombre": "Días al vencimiento",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "Vencimiento - HOY()"
+      },
+      "descripcion": "Días que faltan (negativo si ya venció); cambia cada día"
+    },
+    {
+      "nombre": "Vencida",
+      "tipo": "logico",
+      "origen": {
+        "clase": "formula",
+        "texto": "[Días al vencimiento] < 0"
+      },
+      "descripcion": "VERDADERO si ya pasó el vencimiento"
+    },
+    {
+      "nombre": "Cuotas",
+      "tipo": "entero",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "numero",
+          "valor": 3
+        }
+      },
+      "descripcion": "Cantidad de cuotas. Con 0, la cuota da 0 (SI.ERROR)"
+    },
+    {
+      "nombre": "Valor cuota",
+      "tipo": "numero",
+      "origen": {
+        "clase": "formula",
+        "texto": "SI.ERROR(REDONDEAR(Total / Cuotas; 2); 0)"
+      },
+      "descripcion": "Total dividido en cuotas, redondeado a centavos"
+    },
+    {
+      "nombre": "Primera cuota",
+      "tipo": "fecha",
+      "origen": {
+        "clase": "formula",
+        "texto": "FIN.MES(Vencimiento; 1)"
+      },
+      "descripcion": "Último día del mes siguiente al vencimiento"
+    },
+    {
+      "nombre": "Situación",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "SI(Vencida; \"Vencida\"; SI(Y(Total > 1000; Cuotas > 1); \"En cuotas\"; \"Al día\"))"
+      },
+      "descripcion": "Vencida, En cuotas o Al día"
+    },
+    {
+      "nombre": "Fuero",
+      "tipo": "entero",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "numero",
+          "valor": 1
+        }
+      },
+      "descripcion": "Código de fuero (1 = Federal), parámetro de las consultas"
+    },
+    {
+      "nombre": "Nombre del fuero",
+      "tipo": "texto",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select descripcion\nfrom fueros\nwhere codigo = :Fuero"
+      },
+      "descripcion": "Consulta con parámetro: el nombre del fuero que diga Fuero"
+    },
+    {
+      "nombre": "Expedientes vigentes",
+      "tipo": "entero",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select count(*)\nfrom expedientes\nwhere baja is null"
+      },
+      "descripcion": "Consulta a la base: cuántos expedientes no están dados de baja"
+    },
+    {
+      "nombre": "Expedientes",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select id,\n       estado,\n       region,\n       alta\nfrom expedientes\nwhere baja is null\norder by id"
+      },
+      "columnas": [
+        {
+          "nombre": "Días",
+          "formula": "ENTERO(HOY() - [@Alta])"
+        }
+      ],
+      "descripcion": "Consulta de tipo tabla: los expedientes vigentes, para usar sus columnas (Expedientes[Estado]); Días es una columna calculada"
+    },
+    {
+      "nombre": "Estados",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select codigo, nombre\nfrom estados\norder by codigo"
+      },
+      "descripcion": "Consulta de tipo tabla: los estados de trámite, para buscar el nombre por código"
+    },
+    {
+      "nombre": "Estado",
+      "tipo": "entero",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "numero",
+          "valor": 2
+        }
+      },
+      "descripcion": "Estado de trámite: 1 borrador, 2 en trámite, 3 finalizado"
+    },
+    {
+      "nombre": "Nombre del estado",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "BUSCARV(Estado; Estados; 2; FALSO)"
+      },
+      "descripcion": "El nombre del estado que diga Estado (BUSCARV exacto)"
+    },
+    {
+      "nombre": "Expedientes en el estado",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "CONTAR.SI(Expedientes[Estado]; Estado)"
+      },
+      "descripcion": "Cuántos expedientes vigentes están en ese estado (CONTAR.SI sobre la tabla)"
+    },
+    {
+      "nombre": "Último alta",
+      "tipo": "fecha",
+      "origen": {
+        "clase": "formula",
+        "texto": "MAX(Expedientes[Alta])"
+      },
+      "descripcion": "La fecha del expediente más nuevo: MAX de fechas da una fecha"
+    },
+    {
+      "nombre": "Altas de los últimos 30 días",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "CONTAR.SI(Expedientes[Alta]; \">=\" & (HOY() - 30))"
+      },
+      "descripcion": "Cuántos expedientes se dieron de alta en los últimos 30 días (criterio armado con &; cambia cada día)"
+    },
+    {
+      "nombre": "Expediente",
+      "tipo": "entero",
+      "origen": {
+        "clase": "constante",
+        "valor": {
+          "tipo": "numero",
+          "valor": 1
+        }
+      },
+      "descripcion": "Número de expediente (id), para buscarlo en la tabla"
+    },
+    {
+      "nombre": "Estado del expediente",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "BUSCARV(BUSCARV(Expediente; Expedientes; 2; FALSO); Estados; 2; FALSO)"
+      },
+      "descripcion": "El estado del expediente que diga Expediente: un BUSCARV adentro de otro, sin otra consulta"
+    },
+    {
+      "nombre": "Jurisdicciones",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select codigo,\n       descripcion\nfrom jurisdicciones\nwhere fuero = :Fuero\n  and baja is null\norder by descripcion"
+      },
+      "descripcion": "Tabla con parámetro: las jurisdicciones del fuero que diga Fuero; se vuelve a correr si cambia"
+    },
+    {
+      "nombre": "Cantidad de jurisdicciones",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "FILAS(Jurisdicciones)"
+      },
+      "descripcion": "Cuántas jurisdicciones tiene el fuero (FILAS)"
+    },
+    {
+      "nombre": "Primera jurisdicción",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "INDICE(Jurisdicciones[Descripcion]; 1)"
+      },
+      "descripcion": "La primera en orden alfabético (INDICE)"
+    },
+    {
+      "nombre": "Expedientes por estado",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select estado, count(*) as cantidad\nfrom expedientes\nwhere baja is null\ngroup by estado\norder by estado"
+      },
+      "descripcion": "Tabla agrupada en el SQL: cuántos expedientes hay en cada estado"
+    },
+    {
+      "nombre": "Expedientes por región",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select r.descripcion as region, count(*) as cantidad\nfrom expedientes e\njoin regiones r on r.codigo = e.region\nwhere e.baja is null\ngroup by r.descripcion\norder by cantidad desc"
+      },
+      "descripcion": "Tabla con join y agrupada: las regiones, de la que tiene más expedientes a la que tiene menos"
+    },
+    {
+      "nombre": "Región con más expedientes",
+      "tipo": "texto",
+      "origen": {
+        "clase": "formula",
+        "texto": "INDICE([Expedientes por región][Region]; 1)"
+      },
+      "descripcion": "La primera fila de la tabla ordenada (INDICE)"
+    },
+    {
+      "nombre": "Expedientes con estado",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "consulta",
+        "sql": "select e.id, t.nombre as estado, e.alta\nfrom expedientes e\njoin estados t on t.codigo = e.estado\nwhere e.baja is null\norder by e.id"
+      },
+      "descripcion": "Tabla con join: los expedientes con el nombre del estado en vez del código"
+    },
+    {
+      "nombre": "En trámite",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "CONTAR.SI([Expedientes con estado][Estado]; \"En tr*\")"
+      },
+      "descripcion": "Cuántos están en trámite, buscando por el nombre con comodín"
+    },
+    {
+      "nombre": "Promedio de días",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "REDONDEAR(PROMEDIO(Expedientes[Días]); 0)"
+      },
+      "descripcion": "Cuántos días tienen los expedientes en promedio (de la columna calculada Días)"
+    },
+    {
+      "nombre": "Más de 90 días",
+      "tipo": "entero",
+      "origen": {
+        "clase": "formula",
+        "texto": "SUMA((Expedientes[Días] > 90) * 1)"
+      },
+      "descripcion": "Cuántos tienen más de 90 días: la comparación va celda por celda y VERDADERO * 1 es 1"
+    },
+    {
+      "nombre": "Expedientes en trámite",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "formula",
+        "texto": "FILTRAR(Expedientes; Expedientes[Estado] = 2)"
+      },
+      "descripcion": "Tabla que sale de una fórmula: los expedientes en trámite (FILTRAR)"
+    },
+    {
+      "nombre": "Los 3 más viejos",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "formula",
+        "texto": "TOMAR(ORDENAR(Expedientes; 4); 3)"
+      },
+      "descripcion": "Los tres con el alta más vieja (ORDENAR por la columna 4, Alta, y TOMAR)"
+    },
+    {
+      "nombre": "Alícuotas de IVA",
+      "tipo": "tabla",
+      "origen": {
+        "clase": "datos",
+        "tabla": {
+          "columnas": [
+            "Tipo",
+            "Alicuota"
+          ],
+          "filas": [
+            [
+              {
+                "tipo": "texto",
+                "valor": "General"
+              },
+              {
+                "tipo": "numero",
+                "valor": 0.21
+              }
+            ],
+            [
+              {
+                "tipo": "texto",
+                "valor": "Reducida"
+              },
+              {
+                "tipo": "numero",
+                "valor": 0.105
+              }
+            ],
+            [
+              {
+                "tipo": "texto",
+                "valor": "Diferencial"
+              },
+              {
+                "tipo": "numero",
+                "valor": 0.27
+              }
+            ],
+            [
+              {
+                "tipo": "texto",
+                "valor": "Exento"
+              },
+              {
+                "tipo": "numero",
+                "valor": 0
+              }
+            ]
+          ]
+        }
+      },
+      "columnas": [
+        {
+          "nombre": "Porcentaje",
+          "formula": "TEXTO([@Alicuota]; \"0,0%\")"
+        }
+      ],
+      "descripcion": "Tabla escrita a mano (clase Datos), con una columna calculada"
+    },
+    {
+      "nombre": "Alícuota reducida",
+      "tipo": "numero",
+      "origen": {
+        "clase": "formula",
+        "texto": "BUSCARV(\"Reducida\"; [Alícuotas de IVA]; 2; FALSO)"
+      },
+      "descripcion": "Buscada en la tabla escrita a mano"
+    }
+  ]
+}

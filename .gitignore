@@ -1,0 +1,21 @@
+# Lo que no va al repositorio, en las tres partes (cada una tiene además su .gitignore)
+node_modules/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# builds: dist-lib/ y packs/ de kalc, dist/ de kalc-frontend, publicacion/ de kalc-backend
+dist/
+dist-lib/
+packs/
+publicacion/
+
+# las conexiones a las bases: cada uno arma el suyo desde .env.example
+.env
+.env.*
+!.env.example
+
+# logs y archivos del sistema
+*.log
+.DS_Store
+Thumbs.db

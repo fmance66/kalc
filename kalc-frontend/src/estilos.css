@@ -1,0 +1,818 @@
+/* Estilos propios. Los de los componentes llegan con el tema de PrimeVue (Aura, en main.ts). */
+
+:root {
+  --borde: #dee2e6;
+  --texto-suave: #6c757d;
+  --fondo-panel: #fff;
+  /* La barra es sticky y mide eso: las solapas se fijan justo debajo */
+  --alto-barra: 64px;
+  --fondo-pagina: #fbfbfb;
+  --azul-oscuro: #242c4f;
+  --rojo: #c62828;
+  --enlace: var(--p-primary-color, #0d6efd);
+  --fondo-suave: #f1f3f5;
+  --monoespaciada: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo-pagina);
+  color: #212529;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+code,
+kbd,
+pre {
+  font-family: var(--monoespaciada);
+  font-size: 0.875em;
+}
+
+code {
+  color: #d63384;
+}
+
+kbd {
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  background: #212529;
+  color: #fff;
+}
+
+a {
+  color: var(--enlace);
+}
+
+/* Lo poco de utilidades que usan las páginas (antes venían con Bootstrap) */
+.small { font-size: 0.875em; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mt-0 { margin-top: 0 !important; }
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.m-0 { margin: 0 !important; }
+.p-0 { padding: 0 !important; }
+.ms-1 { margin-left: 0.25rem !important; }
+.ms-2 { margin-left: 0.5rem !important; }
+.ms-auto { margin-left: auto !important; }
+.d-block { display: block !important; }
+.d-none { display: none !important; }
+.fw-normal { font-weight: 400 !important; }
+.text-end { text-align: right !important; }
+.text-nowrap { white-space: nowrap !important; }
+.text-danger { color: var(--rojo) !important; }
+.text-success { color: #198754 !important; }
+.text-secondary { color: var(--texto-suave) !important; }
+.text-warning-emphasis { color: #664d03 !important; }
+.font-monospace { font-family: var(--monoespaciada) !important; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Tablas: compactas, con una línea entre filas */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla th,
+.tabla td {
+  padding: 0.25rem;
+  border-bottom: 1px solid var(--borde);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabla tfoot td {
+  border-bottom: 0;
+}
+
+.tabla-bordeada th,
+.tabla-bordeada td {
+  border: 1px solid var(--borde);
+}
+
+/* Los select de la tabla de variables son nativos: con el aspecto de los campos de PrimeVue */
+.campo-select {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--p-inputtext-border-color, #cbd5e1);
+  border-radius: var(--p-inputtext-border-radius, 6px);
+  background: var(--p-inputtext-background, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.campo-select:focus {
+  border-color: var(--p-primary-color, #10b981);
+  outline: none;
+}
+
+/* Lista vacía: ícono, título y qué hacer */
+.vacio {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 1.5rem 0;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.vacio-icono {
+  font-size: 2rem;
+}
+
+.vacio p {
+  margin: 0;
+}
+
+/* Lo que se trae a la vista con scrollIntoView (la sugerencia marcada del Probador) no queda tapado
+   por la barra y las solapas, que están fijas arriba */
+html {
+  scroll-padding-top: calc(var(--alto-barra) + 4rem);
+}
+
+/* La barra de arriba: fija al bajar, por encima de las solapas */
+.barra.p-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  min-height: var(--alto-barra);
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--azul-oscuro);
+}
+
+/* el fondo del ícono es del mismo azul que la barra: el borde claro lo despega */
+.barra-logo {
+  margin-right: 0.625rem;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+  vertical-align: middle;
+}
+
+.barra-inicio {
+  text-decoration: none;
+}
+
+.barra-titulo {
+  color: #fff;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.app-main {
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+/* Pie: el nombre y la versión a la izquierda, el enlace al repositorio a la derecha */
+.pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--borde);
+  background: var(--fondo-panel);
+  font-size: 0.875rem;
+}
+
+.pie-version {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+.texto-atenuado {
+  color: var(--texto-suave);
+}
+
+.panel {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo-panel);
+}
+
+/* Solapas: fijas debajo de la barra al bajar, con el fondo de la página para que lo de abajo no se
+   vea a través; por debajo de la barra (1020) y de los modales. El padding de arriba las separa de
+   la barra, y el margen negativo lo compensa. */
+.solapas {
+  position: sticky;
+  top: var(--alto-barra);
+  z-index: 1010;
+  display: flex;
+  margin: -0.5rem 0 1rem;
+  padding: 0.5rem 0 0;
+  list-style: none;
+  border-bottom: 1px solid var(--borde);
+  background-color: var(--fondo-pagina);
+}
+
+.solapas .nav-link {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: -1px;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: none;
+  color: var(--texto-suave);
+  font: inherit;
+  cursor: pointer;
+}
+
+.solapas .nav-link:hover {
+  border-color: #e9ecef #e9ecef var(--borde);
+}
+
+.solapas .nav-link.active {
+  border-color: var(--borde) var(--borde) var(--fondo-pagina);
+  background-color: var(--fondo-pagina);
+  color: var(--azul-oscuro);
+  font-weight: 600;
+}
+
+/* Campo de texto con "x" para borrarlo */
+.campo-borrable {
+  position: relative;
+}
+
+.campo-borrable > .p-inputtext {
+  padding-right: 2rem;
+}
+
+.campo-borrar {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  display: inline-flex;
+  padding: 0.15rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--texto-suave);
+  transform: translateY(-50%);
+}
+
+.campo-borrar:hover {
+  background: #eef1f4;
+  color: var(--azul-oscuro);
+}
+
+.panel-titulo {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+/* Probador */
+.probador {
+  display: grid;
+  gap: 1rem;
+  max-width: 60rem;
+}
+
+.formula-entrada,
+.formula-marcada {
+  font-family: var(--monoespaciada);
+  font-size: 1rem;
+}
+
+/* El mensaje del error de sintaxis, debajo de la fórmula */
+.error-sintaxis {
+  margin-top: 0.25rem;
+  color: var(--rojo);
+  font-size: 0.875em;
+}
+
+/* Copia de la fórmula debajo del campo, con el tramo marcado (error o nodo del árbol) */
+.formula-marcada {
+  margin-top: 0.35rem;
+  padding: 0.2rem 0.75rem;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--texto-suave);
+}
+
+.formula-marcada mark {
+  padding: 0;
+  background: #fff3bf;
+  color: #212529;
+}
+
+/* La copia de la fórmula arriba del árbol: fija debajo de las solapas (que miden unos 3rem) mientras
+   el árbol está en pantalla, con fondo para que los renglones no se vean a través */
+.arbol-formula {
+  position: sticky;
+  top: calc(var(--alto-barra) + 3.25rem);
+  z-index: 1;
+  margin: 0 0 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  background: var(--fondo-panel);
+  color: #212529;
+}
+
+.formula-marcada-error mark {
+  background: transparent;
+  color: #c62828;
+  text-decoration: underline wavy #c62828;
+  text-underline-offset: 3px;
+}
+
+.ejemplos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.ejemplo {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: #f8fafc;
+  color: var(--azul-oscuro);
+  font-family: var(--monoespaciada);
+  cursor: pointer;
+}
+
+.ejemplo:hover {
+  border-color: var(--azul-oscuro);
+}
+
+.resultado-valor {
+  font-family: var(--monoespaciada);
+  font-size: 1.75rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* Campo de la fórmula y, separado, el botón Calcular */
+.formula-fila {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.formula-campo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Lo que se ofrece al escribir "[": variables o columnas, debajo del campo */
+.sugerencias {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 10;
+  min-width: 22rem;
+  max-width: 100%;
+  max-height: 18rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--fondo-panel);
+  box-shadow: 0 6px 18px rgba(36, 44, 79, 0.15);
+}
+
+.sugerencias-titulo {
+  padding: 0.15rem 0.75rem 0.25rem;
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sugerencia {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+}
+
+.sugerencia-marcada {
+  background: #eef6ff;
+}
+
+.sugerencia-nombre {
+  font-family: var(--monoespaciada);
+  color: #242c4f;
+}
+
+.sugerencia-detalle {
+  overflow: hidden;
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.borrar-historial {
+  padding: 0 0.25rem;
+  font-size: 0.8rem;
+}
+
+.boton-calcular {
+  flex: none;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+/* La fórmula cambió después de calcular */
+.resultado-desactualizado {
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.resultado-error {
+  border-left: 6px solid #c62828;
+}
+
+.resultado-error .resultado-valor {
+  color: #c62828;
+}
+
+/* Por qué puede fallar el resultado: los problemas de las variables que usa */
+.avisos-probador {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: #c62828;
+}
+
+/* Árbol de la fórmula */
+.arbol {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: none;
+  border-left: 1px dashed var(--borde);
+}
+
+.arbol-raiz {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.arbol-fila {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.arbol-fila:hover {
+  background: #fff3bf;
+}
+
+.arbol-tipo {
+  min-width: 5.5rem;
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.arbol-etiqueta {
+  color: #242c4f;
+  font-weight: 600;
+}
+
+.arbol-texto {
+  color: var(--texto-suave);
+}
+
+.arbol-valor {
+  font-family: var(--monoespaciada);
+  font-size: 0.875em;
+}
+
+/* Catálogo de funciones */
+.funciones {
+  display: grid;
+  gap: 1rem;
+}
+
+.tabla-funciones th {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tabla-funciones td:first-child {
+  width: 30%;
+}
+
+.funcion-firma {
+  color: #242c4f;
+  font-weight: 600;
+  white-space: normal;
+}
+
+.tabla-funciones .ejemplo {
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.funcion-resultado {
+  color: #212529;
+  white-space: nowrap;
+}
+
+/* El enlace al repositorio: en el pie, a la derecha; también en la Ayuda */
+.enlace-repositorio {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+/* Variables */
+.variables {
+  display: grid;
+  gap: 1rem;
+}
+
+.variables-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Pegada a la derecha, cerca de los botones: el margen automático se lleva el espacio libre */
+.variables-busqueda {
+  flex: 0 1 18rem;
+  margin-left: auto;
+  margin-right: 1.75rem;
+  position: relative;
+}
+
+/* Encabezados que ordenan la tabla: un botón con el aspecto del título */
+.ordenar {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  /* Bootstrap les pone text-transform: none a los botones: así se ven como el resto del encabezado */
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ordenar:hover {
+  color: var(--enlace);
+}
+
+/* La lupa adentro del campo, a la izquierda: no recibe clics, que vayan al input */
+.variables-lupa {
+  position: absolute;
+  top: 50%;
+  left: 0.6rem;
+  z-index: 1;
+  transform: translateY(-50%);
+  color: var(--texto-suave);
+  pointer-events: none;
+}
+
+/* Del alto de los botones chicos, con lugar para la lupa */
+.variables-busqueda .p-inputtext {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  padding-left: 2rem;
+  font-size: 0.875rem;
+}
+
+/* Columnas iguales: todos los botones del ancho del más ancho */
+.variables-acciones {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 0.4rem;
+}
+
+
+/* En pantallas angostas, de a dos por fila */
+@media (max-width: 575.98px) {
+  .variables-acciones {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tabla-variables th {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  /* compactos quedan muy apretados contra las líneas */
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.tabla-variables td {
+  vertical-align: top;
+}
+
+.tabla-variables td:nth-child(1) {
+  min-width: 11rem;
+}
+
+.tabla-variables td:nth-child(2) {
+  min-width: 13rem;
+}
+
+.tabla-variables td:nth-child(5) {
+  min-width: 16rem;
+}
+
+.celda-nombre {
+  font-weight: 600;
+}
+
+.celda-descripcion {
+  color: var(--texto-suave);
+}
+
+/* Columnas calculadas de una tabla: nombre, fórmula y quitar, debajo del contenido. Solo ellas: con
+   el campo del contenido, ese quedaba más abajo que los de las otras columnas. */
+.columnas-calculadas {
+  margin-top: 0.35rem;
+}
+
+.columna-calculada {
+  display: grid;
+  grid-template-columns: 8rem 1fr auto;
+  gap: 0.3rem;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.columnas-calculadas .agregar-columna {
+  font-size: 0.8rem;
+}
+
+/* El texto a la altura del de los inputs: padding de la celda + borde + padding del input */
+.celda-resultado {
+  padding-top: calc(0.25rem + 1px + 0.375rem) !important;
+  font-family: var(--monoespaciada);
+  white-space: nowrap;
+}
+
+.celda-estado {
+  padding-top: calc(0.25rem + 1px + 0.375rem) !important;
+  max-width: 18rem;
+}
+
+/* Una tabla (consulta de tipo tabla, o la de ejemplo de Funciones): el tamaño, y al desplegarla los datos */
+.vista-tabla > summary {
+  color: var(--enlace);
+  cursor: pointer;
+}
+
+.vista-tabla-datos {
+  max-width: 40rem;
+  max-height: 18rem;
+  margin-top: 0.35rem;
+  overflow: auto;
+}
+
+.vista-tabla table {
+  width: auto;
+  font-size: 0.8rem;
+}
+
+.vista-tabla th {
+  position: sticky;
+  top: 0;
+  background: var(--fondo-suave);
+  white-space: nowrap;
+}
+
+.celda-estado i {
+  vertical-align: middle;
+}
+
+/* Lo que se acaba de recalcular se ilumina un momento */
+.fila-recalculada > td {
+  animation: recalculada 1.2s ease-out;
+}
+
+@keyframes recalculada {
+  from {
+    background-color: #fff3bf;
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+/* Ayuda */
+.ayuda {
+  display: grid;
+  gap: 1rem;
+  max-width: 60rem;
+}
+
+.ayuda li + li {
+  margin-top: 0.25rem;
+}
+
+.tabla-ayuda td:first-child {
+  width: 9rem;
+  white-space: nowrap;
+}
+
+/* Ejemplos de consultas: nombre, SQL y fórmulas para probar, separados por una línea */
+.ayuda-ejemplo-sql + .ayuda-ejemplo-sql {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--borde);
+}
+
+.ayuda-ejemplo-titulo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.ayuda-sql {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.75rem;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  background: var(--fondo-suave);
+  border-radius: 0.25rem;
+}
+
+.ayuda-operador {
+  color: #242c4f;
+  font-weight: 600;
+}
+
+.ejemplo-variable {
+  background: #eef6ff;
+}
+
+/* modales de Sí/No: los dos botones del mismo ancho */
+.modal-pregunta .p-dialog-footer .p-button {
+  min-width: 9rem;
+}
+
+.aviso-persistencia {
+  margin-bottom: 1rem;
+}

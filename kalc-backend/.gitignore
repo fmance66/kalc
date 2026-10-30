@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+
+# lo que arma npm run publicar para copiar al servidor de prueba
+publicacion/

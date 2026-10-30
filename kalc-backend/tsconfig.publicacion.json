@@ -1,0 +1,13 @@
+{
+  // Compilado a JavaScript para el servidor de prueba, que tiene Node 18 y no corre .ts:
+  // publicacion/servidor/. Lo corre scripts/publicar.mjs.
+  "extends": "./tsconfig.json",
+  "exclude": ["**/*.test.ts"],
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "publicacion/servidor",
+    "rootDir": "src",
+    // Los imports llevan .ts: al compilar pasan a .js
+    "rewriteRelativeImportExtensions": true
+  }
+}

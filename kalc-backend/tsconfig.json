@@ -1,0 +1,23 @@
+{
+  // En desarrollo Node corre los .ts directamente, sin compilar; esto solo chequea tipos
+  // (npm run typecheck). Para publicarlo se compila con tsconfig.publicacion.json.
+  "include": ["src/**/*.ts"],
+  "compilerOptions": {
+    "noEmit": true,
+    // ES2022: el servidor de prueba tiene Node 18 (sin toSorted, Object.groupBy, etc.). Lo que se
+    // usa de kalc ya viene compilado a ES2022 (y su tsconfig.lib.json chequea con lib ES2022).
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
+    // Lo que Node no sabe quitar al correr .ts (enum, namespace, parámetros-propiedad) no compila
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  }
+}
