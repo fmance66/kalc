@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "API de variables de Kalc: guarda las variables en Oracle y corre las variables de consulta.",
+  "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.20.0",
   "engines": {

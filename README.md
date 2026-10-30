@@ -214,3 +214,7 @@ ejemplo de Oracle (`hr`, `scott`) y tablas de prueba (`db/postgres/crear.sql`).
 
 El 30/10/2026, las tres partes pasaron a un solo repositorio, la aplicación pasó a PrimeVue y los
 ejemplos de consultas, a un juzgado de ejemplo con datos inventados (el esquema `juzgado`).
+
+## Licencia
+
+[MIT](LICENSE).

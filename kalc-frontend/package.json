@@ -4,6 +4,7 @@
   "private": true,
   "repository": "https://github.com/fmance66/kalc",
   "description": "Kalc en el navegador: probador de fórmulas, variables (en Oracle a través de kalc-backend, o en el navegador), catálogo de funciones y ayuda.",
+  "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.20.0",
   "engines": {

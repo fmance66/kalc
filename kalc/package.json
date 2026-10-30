@@ -3,6 +3,7 @@
   "version": "1.7.0",
   "private": true,
   "description": "Kalc: motor de fórmulas con la sintaxis y el comportamiento de Excel (es-AR), con variables. Se usa desde otras aplicaciones instalando el .tgz.",
+  "license": "MIT",
   "type": "module",
   "exports": {
     ".": {
