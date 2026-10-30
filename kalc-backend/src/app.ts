@@ -10,7 +10,7 @@ const esValida = (x: unknown): x is Variable => esVariable(x) && validarNombre(x
 const esValor = (x: unknown): x is Valor => esVariable({ nombre: 'x', tipo: 'numero', origen: { clase: 'constante', valor: x } })
 
 /**
- * La API de variables, sobre cualquier repositorio (Oracle en el servidor, uno en memoria en los
+ * La API de variables, sobre cualquier repositorio (PostgreSQL en el servidor, uno en memoria en los
  * tests). Las rutas siguen la interfaz RepositorioVariables:
  *
  *   GET    /api/version            qué versión corre: { version, commit, fecha, kalc }

@@ -6,7 +6,7 @@ import { cargarEntorno } from './entorno.ts'
 import { abrirPostgres, ejecutorPostgres } from './postgres.ts'
 import { publicando, vigilarPublicacion } from './publicacion.ts'
 import { puertoOcupado } from './puerto.ts'
-import { repositorioOracle } from './repositorioOracle.ts'
+import { repositorioPostgres } from './repositorioPostgres.ts'
 import { leerVersion } from './version.ts'
 
 // Arranca la API: npm start (lee .env; ver .env.example). En el servidor de prueba corre
@@ -36,19 +36,17 @@ if (await puertoOcupado(puerto)) {
   process.exit(1)
 }
 
-// Modo thin (el de por defecto): no hace falta Instant Client. Pide Oracle 12.1 o posterior, y no
-// acepta claves con el verificador de Oracle 10g (NJS-116). Para esas, ORACLE_CLIENTE apunta a un
-// Oracle Instant Client 19 o posterior y se usa el modo thick.
+// Oracle es opcional, para consultas. Modo thin (el de por defecto): no hace falta Instant Client.
+// Pide Oracle 12.1 o posterior, y no acepta claves con el verificador de Oracle 10g (NJS-116). Para
+// esas, ORACLE_CLIENTE apunta a un Oracle Instant Client 19 o posterior y se usa el modo thick.
 if (process.env.ORACLE_CLIENTE) oracledb.initOracleClient({ libDir: process.env.ORACLE_CLIENTE })
 
 // Un pool por conexión, que se abre la primera vez que se usa (ver conexiones.ts). El del almacén
-// (siempre Oracle) guarda las variables.
+// (siempre PostgreSQL) guarda las variables: es el único que no es de solo lectura.
 const deTipo = (tipo: DatosConexion['tipo']) => configuracion.conexiones.filter((c) => c.tipo === tipo)
-const oracle = pools(deTipo('oracle'), (d) =>
-  oracledb.createPool(atributosPool(d, d.nombre === configuracion.almacen ? { poolMin: 1, poolMax: 4 } : { poolMin: 0, poolMax: 4 })),
-)
-const postgres = pools(deTipo('postgres'), async (d) => abrirPostgres(d))
-const pool = { getConnection: async () => (await oracle.obtener(configuracion.almacen)).getConnection() }
+const oracle = pools(deTipo('oracle'), (d) => oracledb.createPool(atributosPool(d, { poolMin: 0, poolMax: 4 })))
+const postgres = pools(deTipo('postgres'), async (d) => abrirPostgres(d, { soloLectura: d.nombre !== configuracion.almacen }))
+const almacen = { connect: async () => (await postgres.obtener(configuracion.almacen)).connect() }
 // Un ejecutor por cada conexión en la que pueden correr las consultas; la API ya controló que la
 // que pide la variable sea una de esas.
 const ejecutores = new Map(
@@ -66,7 +64,7 @@ const ejecutar: EjecutarSql = async (sql, parametros, opciones = {}) => {
 }
 
 const version = leerVersion()
-const servidor = crearApp(repositorioOracle(pool), ejecutar, version, configuracion.consultas).listen(puerto, () => {
+const servidor = crearApp(repositorioPostgres(almacen), ejecutar, version, configuracion.consultas).listen(puerto, () => {
   console.log(`${ahora()} API de variables v${version.version}${version.commit ? ` (${version.commit})` : ''} en http://localhost:${puerto}/api/variables`)
 })
 vigilarPublicacion(() => {

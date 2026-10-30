@@ -2,7 +2,7 @@
 
 La aplicación de [Kalc](../kalc) en el navegador, en Vue 3 + PrimeVue: un **probador de fórmulas**
 con el árbol de cada fórmula, una **tabla de variables** editable (constantes, fórmulas, tablas
-escritas a mano y consultas a Oracle o PostgreSQL), el **catálogo de funciones** y una **ayuda** con ejemplos que
+escritas a mano y consultas a PostgreSQL u Oracle), el **catálogo de funciones** y una **ayuda** con ejemplos que
 se prueban con un clic. Las variables se guardan en la base a través de
 [kalc-backend](../kalc-backend), o, sin backend, en el `localStorage` del navegador.
 
@@ -84,10 +84,9 @@ Si kalc-backend falla, el cambio queda en pantalla y un aviso arriba lo dice, co
 después de un guardado fallido guarda todas las de pantalla; después de una carga fallida vuelve a
 cargar (nunca guarda: reemplazaría las de la base por una lista incompleta).
 
-La conexión a la base es la de kalc-backend (`ORACLE_*` o `POSTGRES_*` en `../kalc-backend/.env`, ver su README):
-este proyecto no tiene credenciales. Para pasar a otro esquema, ver "Usar otra base" en su README.
-Puede tener varias bases con nombre: una guarda las variables y las consultas corren en las que
-diga su `CONSULTAS`.
+La conexión a la base es la de kalc-backend (`../kalc-backend/.env`, ver su README): este proyecto
+no tiene credenciales. Puede tener varias bases con nombre: una guarda las variables y las
+consultas corren en las que diga su `CONSULTAS`.
 
 ## Consultas a la base
 
@@ -110,16 +109,16 @@ se guarda en la variable (`origen.conexion`, Kalc 1.5.0). Con una sola, no apare
 con una conexión que el servidor no tiene (importada de otro) la muestra como "no está en el
 servidor" y su consulta da `#¡VALOR!` con el motivo.
 
-Las consultas corren en Oracle o, si kalc-backend tiene una conexión PostgreSQL (ver "Consultas en
-PostgreSQL" en su README), en PostgreSQL; el SQL se escribe igual, con `:Nombre`. En la base, las
-columnas se llaman como las devuelve (Oracle en mayúscula, PostgreSQL en minúscula, salvo un alias
-entre comillas), y en las fórmulas da igual: `Expedientes[Estado]`. Dos columnas con el mismo nombre
+Las consultas corren en PostgreSQL o, si kalc-backend tiene una conexión Oracle (ver "Consultas en
+Oracle" en su README), en Oracle; el SQL se escribe igual, con `:Nombre`. En la base, las columnas
+se llaman como las devuelve (PostgreSQL en minúscula, Oracle en mayúscula, salvo un alias entre
+comillas), y en las fórmulas da igual: `Expedientes[Estado]`. Dos columnas con el mismo nombre
 (`select a.id, b.id`) necesitan alias distintos.
 
 ### Ejemplos con el juzgado
 
-Las variables de ejemplo traen estas consultas, contra el juzgado de ejemplo: el esquema `juzgado`
-de la base PostgreSQL de kalc-backend (`db/postgres/juzgado.sql`, datos inventados). Para que
+Las variables de ejemplo traen estas consultas, contra el juzgado de ejemplo: el esquema `kalc_data`
+de la base PostgreSQL de kalc-backend (`db/postgres/kalc_data.sql`, datos inventados). Para que
 corran, kalc-backend tiene que tener esa base como conexión de consultas por defecto (ver "La base
 de ejemplo" en su README). La solapa Ayuda las muestra con fórmulas para probar con un clic.
 
@@ -141,8 +140,8 @@ con fórmulas: viaja menos y el tope es 10.000 filas. Las columnas se usan con e
 
 ### Ejemplos con PostgreSQL
 
-Si kalc-backend tiene la conexión `local` (la base PostgreSQL de ejemplo: ver "Consultas en
-PostgreSQL" en su README), la Ayuda muestra además "Ejemplos con PostgreSQL": 28 variables de
+Si kalc-backend tiene la conexión `local` (la base PostgreSQL de ejemplo: ver "La base de ejemplo"
+en su README), la Ayuda muestra además "Ejemplos con PostgreSQL": 28 variables de
 `src/pruebas/variablesPostgres.ts`, con esa conexión elegida, sobre los esquemas `prueba`, `hr` y
 `scott`. No están en las variables iniciales: sin esa conexión la sección no aparece. Si faltan en
 Variables, el botón **Agregarlas** agrega las que no están y no toca las demás. Los datos son fijos,

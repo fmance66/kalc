@@ -2,7 +2,7 @@
 
 Un **motor de fórmulas** con la misma sintaxis y el mismo comportamiento que Excel en castellano
 (`SI(A>1,5; "alto"; "bajo")`, `#¡DIV/0!`, `-2^2 = 4`), con **variables con nombre** que pueden ser
-constantes, fórmulas, tablas escritas a mano o consultas a Oracle (o a PostgreSQL). Más una API que guarda las
+constantes, fórmulas, tablas escritas a mano o consultas a PostgreSQL (o a Oracle). Más una API que guarda las
 variables en la base y una aplicación web para probarlo.
 
 > Este repositorio tiene las tres partes, cada una en su carpeta con su README y su CLAUDE.md.
@@ -13,7 +13,7 @@ variables en la base y una aplicación web para probarlo.
 | Carpeta | Qué es | Depende de | Puerto |
 |---|---|---|---|
 | [`kalc`](kalc) | La librería: el motor de fórmulas (TypeScript puro, sin dependencias), que se empaqueta en `kalc-X.Y.Z.tgz` | nada | — |
-| [`kalc-backend`](kalc-backend) | La API de variables (Node + Express + `oracledb` y `pg`): las guarda en Oracle (`motor_variables`) y corre las variables de consulta, en Oracle o PostgreSQL | `kalc` (el `.tgz`) | 7201 (8082 publicada) |
+| [`kalc-backend`](kalc-backend) | La API de variables (Node + Express + `pg` y `oracledb`): las guarda en PostgreSQL (`motor_variables`) y corre las variables de consulta, en PostgreSQL u Oracle | `kalc` (el `.tgz`) | 7201 (8082 publicada) |
 | [`kalc-frontend`](kalc-frontend) | La aplicación en Vue 3 + PrimeVue: Probador, Variables, Funciones y Ayuda | `kalc` (el `.tgz`) y `kalc-backend` por HTTP | 7200 |
 
 ```mermaid
@@ -27,11 +27,11 @@ flowchart LR
   end
   subgraph backend["kalc-backend · Node + Express (7201)"]
     rutas["app.ts<br/>/api/variables · /api/consultas"]
-    repo["repositorioOracle.ts"]
+    repo["repositorioPostgres.ts"]
     consultas["consultas.ts · postgres.ts"]
   end
-  almacen[("Oracle<br/>motor_variables")]
-  bases[("Oracle o PostgreSQL<br/>las consultas")]
+  almacen[("PostgreSQL<br/>motor_variables")]
+  bases[("PostgreSQL u Oracle<br/>las consultas")]
   app -- "import 'kalc' (.tgz)" --> motor
   rutas -- "import 'kalc' (.tgz)" --> motor
   persistencia -- "HTTP /api/…" --> rutas
@@ -54,12 +54,10 @@ Reglas entre las partes:
 
 ## Instalar y levantar todo
 
-Requisitos: Node 22.12 o posterior. Para guardar las variables en una base, una Oracle (sirve
-[Oracle Database Free](https://www.oracle.com/database/free/)); puede ser una sola, o varias con
-nombre: una guarda las variables (el almacén) y las consultas corren en las que se elijan. Para
-las consultas de ejemplo, un PostgreSQL con la base de ejemplo (`kalc-backend/db/postgres/`, datos
-inventados): ver "La base de ejemplo" en el README de `kalc-backend`. Sin base, la aplicación
-guarda las variables en el navegador y no corre consultas.
+Requisitos: Node 22.12 o posterior y PostgreSQL. Con eso alcanza: las variables se guardan ahí, y
+las consultas de ejemplo corren contra la base de ejemplo (datos inventados). Las consultas también
+pueden correr en bases Oracle, agregando una conexión: ver "Consultas en Oracle" en el README de
+`kalc-backend`. Sin base, la aplicación guarda las variables en el navegador y no corre consultas.
 
 ```sh
 # 1. el repositorio
@@ -69,15 +67,13 @@ cd kalc
 # 2. las dependencias de cada parte (npm 11: con el 10 que traen algunos Node falla kalc-backend)
 npm run instalar
 
-# 3. la conexión a la base, en kalc-backend: una (ORACLE_USUARIO, ORACLE_CLAVE, ORACLE_CONEXION)
-#    o varias con nombre (CONEXIONES, ALMACEN, CONSULTAS y ORACLE_<NOMBRE>_* / POSTGRES_<NOMBRE>_*;
-#    ver .env.example)
+# 3. la base: los usuarios, la tabla de variables y los ejemplos
+psql -h localhost -U postgres -v clave_kalc=<clave> -v clave_lectura=<clave> -f kalc-backend/db/postgres/crear.sql
+
+# 4. la conexión a la base, en kalc-backend: completar las dos claves del paso 3
 cp kalc-backend/.env.example kalc-backend/.env
 #    y en kalc-frontend, que use la API (sin esto, guarda en el navegador y no corre consultas)
 cp kalc-frontend/.env.example kalc-frontend/.env
-
-# 4. la primera vez, crear la tabla en el esquema del almacén: kalc-backend/db/oracle/variables.sql (con sqlplus)
-#    y, para los ejemplos, la base PostgreSQL: kalc-backend/db/postgres/crear.sql (con psql)
 
 # 5. levantar: kalc-frontend arranca también kalc-backend (de ../kalc-backend)
 npm start   # http://localhost:7200, la API en el 7201
@@ -119,7 +115,7 @@ kalc-backend, que corre como tarea programada:
 ```
 navegador ──► IIS  /kalc/       kalc-frontend compilado   C:\inetpub\wwwroot\kalc
                    /kalc/api/ ─► kalc-backend, puerto 8082  C:\app\kalc-backend (tarea KalcBackend)
-                                  └─► Oracle (y PostgreSQL, si hay)
+                                  └─► PostgreSQL (y Oracle, si hay)
 ```
 
 ### `scripts/publicar.ps1`
@@ -203,17 +199,19 @@ API está en `http://<servidor>/kalc/api/version` (`kalc`).
 
 Al principio todo estaba en `kalc`: la librería (`motor/`), su demo (`frontend/`), la API
 (`backend/`) y los scripts de la base (`db/`). El 14/10/2026 se separó en tres partes: la API y
-`db/` (hoy `db/oracle/`) pasaron a `kalc-backend`, y la demo a `kalc-frontend`, fusionada con
+`db/` pasaron a `kalc-backend`, y la demo a `kalc-frontend`, fusionada con
 `kalc-demo`, una aplicación mínima que ya usaba Kalc desde el `.tgz`.
 
 El 15/10/2026, varias bases (Kalc 1.5.0): kalc-backend lee conexiones con nombre (`CONEXIONES`,
 `ALMACEN`, `CONSULTAS`) y cada variable de consulta puede elegir en cuál corre. El mismo día,
 consultas en PostgreSQL (Kalc 1.5.1, que no lee `x::int` como un parámetro): una conexión
-`POSTGRES_<NOMBRE>_*` en kalc-backend, y una base PostgreSQL de ejemplo con los esquemas de
-ejemplo de Oracle (`hr`, `scott`) y tablas de prueba (`db/postgres/crear.sql`).
+`POSTGRES_<NOMBRE>_*` en kalc-backend, y una base PostgreSQL de ejemplo con los esquemas clásicos
+`hr` y `scott` y tablas de prueba (`db/postgres/crear.sql`).
 
 El 30/10/2026, las tres partes pasaron a un solo repositorio, la aplicación pasó a PrimeVue y los
-ejemplos de consultas, a un juzgado de ejemplo con datos inventados (el esquema `juzgado`).
+ejemplos de consultas, a un juzgado de ejemplo con datos inventados (el esquema `kalc_data`). Ese
+mismo día las variables pasaron a guardarse en PostgreSQL: Oracle quedó solo como una base posible
+para las consultas.
 
 ## Licencia
 

@@ -21,7 +21,7 @@ están en el [README general](../README.md).
 | 3. Funciones | lógicas (`SI`, `Y`, `O`, `SI.ERROR`…), matemáticas, texto, información, fechas; página Funciones | ✅ |
 | 4. Variables | catálogo, dependencias, ciclos, recálculo; página Variables con `localStorage`; página Ayuda | ✅ |
 | 5. Librería | API pública congelada (1.0.0), paquete instalable, ejemplos de uso | ✅ |
-| 6. Base | variables guardadas en Oracle; variables de consulta (`SELECT` con parámetros) (1.1.0); consultas de tipo tabla, con `Expedientes[Estado]`, conteos y búsquedas (1.2.0); arrays dinámicos (`FILTRAR`, `ORDENAR`…), tablas a mano y columnas calculadas con `[@Columna]` | ✅ |
+| 6. Base | variables guardadas en la base; variables de consulta (`SELECT` con parámetros) (1.1.0); consultas de tipo tabla, con `Expedientes[Estado]`, conteos y búsquedas (1.2.0); arrays dinámicos (`FILTRAR`, `ORDENAR`…), tablas a mano y columnas calculadas con `[@Columna]` | ✅ |
 
 Las etapas 1 a 4 nombran las páginas de la demo, que desde el 14/10/2026 están en `kalc-frontend`.
 
@@ -443,8 +443,8 @@ vacía. Una fórmula nunca da vacío: la fórmula `V` con `V` vacía da 0.
 
 El motor no guarda nada ni corre SQL: define las interfaces `RepositorioVariables` (dónde se
 guardan) y `EjecutorConsultas` (quién corre el `SELECT` de una variable de consulta), y cada
-aplicación pone las suyas. [`kalc-backend`](../kalc-backend) las implementa contra Oracle (tabla
-`motor_variables`; las consultas corren en Oracle o en PostgreSQL) y [`kalc-frontend`](../kalc-frontend) las usa por HTTP, o guarda en el navegador
+aplicación pone las suyas. [`kalc-backend`](../kalc-backend) las implementa contra PostgreSQL (tabla
+`motor_variables`; las consultas corren en PostgreSQL o en Oracle) y [`kalc-frontend`](../kalc-frontend) las usa por HTTP, o guarda en el navegador
 sin backend. Los ejemplos de consultas, contra la base PostgreSQL de ejemplo (`db/postgres/` de
 `kalc-backend`), están en el README de `kalc-frontend`.
 

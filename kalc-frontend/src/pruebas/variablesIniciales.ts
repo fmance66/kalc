@@ -4,7 +4,7 @@ import { fechaASerie, type Variable } from 'kalc'
  * Las variables de ejemplo: un poco de todo (dependencias, un nombre con espacios, fechas, texto,
  * HOY, SI.ERROR, consultas a la base de un valor y de una tabla). La app arranca con ellas la
  * primera vez, y la página Variables las recarga. Las consultas usan el juzgado de ejemplo de la
- * base PostgreSQL de kalc-backend (db/postgres/juzgado.sql): expedientes, fueros, estados de
+ * base PostgreSQL de kalc-backend (db/postgres/kalc_data.sql): expedientes, fueros, estados de
  * trámite, jurisdicciones y regiones, todo inventado.
  */
 export const VARIABLES_INICIALES: Variable[] = [

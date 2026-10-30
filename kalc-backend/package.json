@@ -2,7 +2,7 @@
   "name": "kalc-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "API de variables de Kalc: guarda las variables en Oracle y corre las variables de consulta.",
+  "description": "API de variables de Kalc: guarda las variables en PostgreSQL y corre las variables de consulta, en PostgreSQL u Oracle.",
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.20.0",
@@ -10,8 +10,8 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "start": "node --watch src/index.ts",
-    "dev": "node --watch src/index.ts",
+    "start": "node --experimental-strip-types --no-warnings --watch src/index.ts",
+    "dev": "node --experimental-strip-types --no-warnings --watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json",

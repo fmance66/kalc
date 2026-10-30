@@ -2,7 +2,7 @@
 
 La aplicación en Vue 3 + PrimeVue que usa [Kalc](../kalc) (el motor de fórmulas tipo Excel)
 instalado desde el `.tgz`: Probador, Variables, Funciones y Ayuda. Las variables se guardan en
-Oracle a través de `kalc-backend` (con `VITE_API`) o en el `localStorage` del navegador.
+PostgreSQL a través de `kalc-backend` (con `VITE_API`) o en el `localStorage` del navegador.
 
 > Hasta el 14/10/2026 esto era la demo de `kalc` (`frontend/`), y había otra app mínima de una
 > sola página, `kalc-demo`. Se fusionaron acá (14/10/2026): la base es la demo de `kalc`; de
@@ -87,7 +87,7 @@ scripts/publicar.mjs  npm run publicar: estáticos a la carpeta del IIS (KALC_DE
 
 Ejemplos: datos inventados, del mismo dominio (un juzgado: expedientes, fueros, estados). Las
 consultas de ejemplo van contra la base PostgreSQL de ejemplo de kalc-backend (`db/postgres/`:
-`juzgado` para las iniciales; `prueba`, `hr` y `scott` para las de PostgreSQL) y se prueban contra
+`kalc_data` para las iniciales; `prueba`, `hr` y `scott` para las de PostgreSQL) y se prueban contra
 ella antes de agregarlas.
 
 ## Persistencia

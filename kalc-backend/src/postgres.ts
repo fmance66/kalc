@@ -4,9 +4,9 @@ import { CONEXION_POSTGRES, type DatosConexion } from './conexiones.ts'
 import { aBind, resultado, type EjecutarSql } from './consultas.ts'
 
 /**
- * Las variables de consulta sobre PostgreSQL. El SQL se escribe igual que para Oracle, con
- * parámetros `:Nombre`; acá se pasan a `$1`, `$2`… Un PostgreSQL es solo para consultas: el
- * almacén de las variables es siempre Oracle.
+ * Las variables de consulta sobre PostgreSQL. El SQL se escribe con parámetros `:Nombre`, igual
+ * en cualquier base; acá se pasan a `$1`, `$2`… El almacén de las variables también es PostgreSQL
+ * (repositorioPostgres.ts).
  */
 
 /** Lo que se usa del pool de pg: así los tests pasan uno falso. */
@@ -27,12 +27,13 @@ const tipos = {
 }
 
 /**
- * Los datos del pool de pg. Las sesiones son de solo lectura (default_transaction_read_only), y con
- * esquema, ese es el search_path: las tablas se nombran sin prefijo.
+ * Los datos del pool de pg. Las sesiones son de solo lectura (default_transaction_read_only), salvo
+ * las del almacén, que escribe; y con esquema, ese es el search_path: las tablas se nombran sin
+ * prefijo.
  */
-export function opcionesPostgres(d: DatosConexion): pg.PoolConfig {
+export function opcionesPostgres(d: DatosConexion, { soloLectura = true } = {}): pg.PoolConfig {
   const [, host, puerto, base] = CONEXION_POSTGRES.exec(d.conexion) ?? []
-  const opciones = ['-c default_transaction_read_only=on', ...(d.esquema ? [`-c search_path=${d.esquema}`] : [])]
+  const opciones = [...(soloLectura ? ['-c default_transaction_read_only=on'] : []), ...(d.esquema ? [`-c search_path=${d.esquema}`] : [])]
   return { host, port: puerto ? Number(puerto) : 5432, database: base, user: d.usuario, password: d.clave, max: 4, options: opciones.join(' '), types: tipos }
 }
 
@@ -89,8 +90,8 @@ export function ejecutorPostgres(pool: PoolPostgres, { tiempoMaximo = 15_000, fi
 }
 
 /** Abre el pool de una conexión PostgreSQL (se conecta recién al primer pedido). */
-export function abrirPostgres(d: DatosConexion): PoolPostgres & { close(segundos: number): Promise<void> } {
-  const pool = new pg.Pool(opcionesPostgres(d))
+export function abrirPostgres(d: DatosConexion, opciones?: { soloLectura?: boolean }): PoolPostgres & { close(segundos: number): Promise<void> } {
+  const pool = new pg.Pool(opcionesPostgres(d, opciones))
   // Una conexión ociosa que se cae emite 'error': sin esto, se cae la API entera.
   pool.on('error', (e) => console.error(`PostgreSQL ${d.nombre}:`, e.message))
   return { connect: () => pool.connect(), close: () => pool.end() }

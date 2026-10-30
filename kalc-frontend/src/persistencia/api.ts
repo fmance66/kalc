@@ -3,7 +3,7 @@ import { ErrorConsulta, esTabla, esVariable, type CodigoError, type EjecutorCons
 /**
  * Corre las variables de consulta en el servidor: manda el nombre y los parámetros, y el servidor
  * corre el SQL que tiene guardado (nunca el que llega) y devuelve el valor, o la tabla si la variable
- * es de tipo tabla. Un error de la consulta (sin filas, error de Oracle) vuelve como ErrorConsulta,
+ * es de tipo tabla. Un error de la consulta (sin filas, error de la base) vuelve como ErrorConsulta,
  * con su código y el mensaje.
  */
 export function ejecutorApi(base: string, pedir: typeof fetch = (...a) => fetch(...a)): EjecutorConsultas {
@@ -32,7 +32,7 @@ export const sinServidor: EjecutorConsultas = async () => {
 }
 
 /**
- * Las variables en la API de kalc-backend (../kalc-backend), que las guarda en Oracle. `base` es la
+ * Las variables en la API de kalc-backend (../kalc-backend), que las guarda en PostgreSQL. `base` es la
  * URL de la API (`/api`: en desarrollo, Vite la redirige al servidor).
  */
 export function repositorioApi(base: string, pedir: typeof fetch = (...a) => fetch(...a)): RepositorioVariables {

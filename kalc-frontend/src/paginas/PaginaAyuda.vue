@@ -56,9 +56,9 @@ const CASOS_ARRAYS = [
 ]
 
 /**
- * Consultas al juzgado de ejemplo (esquema juzgado de la base PostgreSQL de kalc-backend), probadas
+ * Consultas al juzgado de ejemplo (esquema kalc_data de la base PostgreSQL de kalc-backend), probadas
  * contra la base. El SQL y el tipo salen de las variables iniciales: así lo que se muestra es lo
- * que se carga. `hoy` es lo que devuelven con los datos de db/postgres/juzgado.sql.
+ * que se carga. `hoy` es lo que devuelven con los datos de db/postgres/kalc_data.sql.
  */
 const EJEMPLOS_JUZGADO = [
   { variable: 'Nombre del fuero', que: 'Un valor, con un parámetro: :Fuero es otra variable (vale 1).', hoy: 'Federal', formulas: ['"Fuero " & [Nombre del fuero]'] },
@@ -98,7 +98,7 @@ const EJEMPLOS_POSTGRES = [
   { variable: 'Cotizaciones del dólar', que: 'Tabla con fechas: una fila por día hábil de 2026.', hoy: '194 filas', formulas: ['MAX([Cotizaciones del dólar][Vendedor])', 'MIN([Cotizaciones del dólar][Fecha])'] },
   { variable: 'Ventas por sucursal', que: 'Tabla con join, agrupada en la base: 2000 ventas en 6 filas.', hoy: '6 filas', formulas: ['INDICE([Ventas por sucursal][Sucursal]; 1)', 'SUMA([Ventas por sucursal][Ventas])'] },
   { variable: 'Feriados', que: 'Tabla de fechas: FILTRAR y HOY dan el próximo.', hoy: '16 filas', formulas: ['MIN(FILTRAR(Feriados[Fecha]; Feriados[Fecha] >= HOY()))', 'CONTAR.SI(Feriados[Inamovible]; FALSO)'] },
-  { variable: 'Nombre del empleado', que: 'Esquema hr (el de ejemplo de Oracle): un parámetro numérico, :Empleado (vale 104).', hoy: 'Bruce Ernst', formulas: ['"Hola, " & [Nombre del empleado]'] },
+  { variable: 'Nombre del empleado', que: 'Esquema hr (el clásico de ejemplo): un parámetro numérico, :Empleado (vale 104).', hoy: 'Bruce Ernst', formulas: ['"Hola, " & [Nombre del empleado]'] },
   { variable: 'Empleados', que: 'Los 107 empleados de hr, con alias en castellano para las columnas.', hoy: '107 filas', formulas: ['PROMEDIO.SI(Empleados[Departamento]; 60; Empleados[Sueldo])', 'MIN(Empleados[Alta])'] },
   { variable: 'Empleados por departamento', que: 'Agrupada sobre la vista emp_details_view.', hoy: '11 filas', formulas: ['BUSCARV("IT"; [Empleados por departamento]; 3; FALSO)'] },
   { variable: 'Antigüedad promedio', que: 'Convierte con :: de PostgreSQL (no es un parámetro).', hoy: '20,9', formulas: ['ENTERO([Antigüedad promedio])'] },
@@ -297,7 +297,7 @@ async function agregarPostgres() {
           correr sola. El valor va aparte, nunca pegado en el SQL. Solo sirven nombres con letras, números y <code>_</code>.
         </li>
         <li>
-          Corre en el servidor, contra la base a la que está conectado: Oracle o PostgreSQL, con el mismo <code>:Nombre</code>
+          Corre en el servidor, contra la base a la que está conectado: PostgreSQL u Oracle, con el mismo <code>:Nombre</code>
           para los parámetros (lo de otros esquemas, con sinónimos o vistas). Solo se acepta una sentencia <code>SELECT</code>
           o <code>WITH</code>, de solo lectura.
         </li>
@@ -331,7 +331,7 @@ async function agregarPostgres() {
         </li>
         <li>
           Las fórmulas la usan como una tabla de Excel: <code>Expedientes[Estado]</code> es una columna (sin distinguir mayúsculas:
-          Oracle devuelve los nombres en mayúscula; PostgreSQL, en minúscula) y <code>Expedientes</code>, la tabla entera. El corchete va pegado al nombre;
+          PostgreSQL devuelve los nombres en minúscula; Oracle, en mayúscula) y <code>Expedientes</code>, la tabla entera. El corchete va pegado al nombre;
           con espacios, <code>[Mis expedientes][Estado]</code>. Por ejemplo, <code>CONTAR.SI(Expedientes[Estado]; 2)</code> cuenta
           los que están en trámite y <code>MAX(Expedientes[Alta])</code> da la fecha del más nuevo.
         </li>
@@ -413,8 +413,8 @@ async function agregarPostgres() {
     <section class="panel">
       <h2 class="panel-titulo">Ejemplos con el juzgado</h2>
       <p>
-        Consultas a un juzgado de ejemplo, con datos inventados: el esquema <code>juzgado</code> de la base PostgreSQL de
-        kalc-backend (<code>db/postgres/juzgado.sql</code>). Están en las variables iniciales: las fórmulas de cada una se abren
+        Consultas a un juzgado de ejemplo, con datos inventados: el esquema <code>kalc_data</code> de la base PostgreSQL de
+        kalc-backend (<code>db/postgres/kalc_data.sql</code>). Están en las variables iniciales: las fórmulas de cada una se abren
         en el Probador con un clic. Para armar otra, en Variables: Agregar, clase Consulta, tipo <strong>Tabla</strong> si trae
         varias filas (si no, el tipo del valor), y el SQL.
       </p>
@@ -437,8 +437,8 @@ async function agregarPostgres() {
       <h2 class="panel-titulo">Ejemplos con PostgreSQL</h2>
       <p>
         Consultas a la base PostgreSQL de prueba de kalc-backend (conexión <code>{{ CONEXION_POSTGRES }}</code>, solo en
-        desarrollo): los esquemas <code>hr</code> y <code>scott</code>, los de ejemplo de Oracle, y <code>prueba</code>. El SQL
-        se escribe igual que para Oracle, con <code>:Nombre</code>; las columnas llegan en minúscula.
+        desarrollo): los esquemas clásicos <code>hr</code> y <code>scott</code>, y <code>prueba</code>. El SQL se escribe con
+        <code>:Nombre</code>, igual en cualquier base; las columnas llegan en minúscula.
         <template v-if="faltan.length">
           Faltan {{ faltan.length }} de sus {{ VARIABLES_POSTGRES.length }} variables en Variables:
           <Button label="Agregarlas" size="small" outlined class="agregar-postgres" :disabled="agregando" @click="agregarPostgres" />

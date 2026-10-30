@@ -4,12 +4,14 @@ import { atributosPool, ErrorConfiguracion, leerConfiguracion, pools, type Datos
 const JUZGADO = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=192.0.2.10)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))'
 const REPORTES = '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=192.0.2.20)(PORT=1521))(CONNECT_DATA=(SID=REPORTES)))'
 
+const POSTGRES = 'localhost:5432/kalc'
+
 const dosBases: NodeJS.ProcessEnv = {
   CONEXIONES: 'juzgado, Reportes',
-  ORACLE_JUZGADO_USUARIO: 'kalc',
-  ORACLE_JUZGADO_CLAVE: 'x',
-  ORACLE_JUZGADO_CONEXION: JUZGADO,
-  ORACLE_JUZGADO_ESQUEMA: 'kalc',
+  POSTGRES_JUZGADO_USUARIO: 'kalc',
+  POSTGRES_JUZGADO_CLAVE: 'x',
+  POSTGRES_JUZGADO_CONEXION: POSTGRES,
+  POSTGRES_JUZGADO_ESQUEMA: 'kalc',
   ORACLE_REPORTES_USUARIO: 'consulta_ro',
   ORACLE_REPORTES_CLAVE: 'y',
   ORACLE_REPORTES_CONEXION: REPORTES,
@@ -19,7 +21,7 @@ describe('leerConfiguracion con CONEXIONES', () => {
   it('lee cada conexión por su nombre, en minúsculas; el almacén es la primera y las consultas, todas', () => {
     expect(leerConfiguracion(dosBases)).toEqual({
       conexiones: [
-        { nombre: 'juzgado', tipo: 'oracle', usuario: 'kalc', clave: 'x', conexion: JUZGADO, esquema: 'kalc' },
+        { nombre: 'juzgado', tipo: 'postgres', usuario: 'kalc', clave: 'x', conexion: POSTGRES, esquema: 'kalc' },
         { nombre: 'reportes', tipo: 'oracle', usuario: 'consulta_ro', clave: 'y', conexion: REPORTES },
       ],
       almacen: 'juzgado',
@@ -28,8 +30,8 @@ describe('leerConfiguracion con CONEXIONES', () => {
   })
 
   it('ALMACEN y CONSULTAS eligen entre las declaradas, sin distinguir mayúsculas', () => {
-    const c = leerConfiguracion({ ...dosBases, ALMACEN: 'REPORTES', CONSULTAS: 'reportes' })
-    expect(c.almacen).toBe('reportes')
+    const c = leerConfiguracion({ ...dosBases, CONEXIONES: 'reportes,juzgado', ALMACEN: 'JUZGADO', CONSULTAS: 'REPORTES' })
+    expect(c.almacen).toBe('juzgado')
     expect(c.consultas).toEqual(['reportes'])
   })
 
@@ -43,9 +45,10 @@ describe('leerConfiguracion con CONEXIONES', () => {
     ['un nombre no sirve', { ...dosBases, CONEXIONES: 'juzgado,repor-tes' }, '"repor-tes" no sirve como nombre'],
     ['un nombre repetido', { ...dosBases, CONEXIONES: 'juzgado,JUZGADO' }, 'hay un nombre repetido'],
     ['ALMACEN no está', { ...dosBases, ALMACEN: 'otra' }, 'ALMACEN: "otra" no está en CONEXIONES (juzgado, reportes)'],
+    ['el almacén no es PostgreSQL', { ...dosBases, ALMACEN: 'reportes' }, 'ALMACEN: "reportes" no es PostgreSQL'],
     ['CONSULTAS no está', { ...dosBases, CONSULTAS: 'reportes,otra' }, 'CONSULTAS: "otra" no está'],
     ['CONSULTA_POR_DEFECTO no está en CONSULTAS', { ...dosBases, CONSULTAS: 'reportes', CONSULTA_POR_DEFECTO: 'juzgado' }, 'CONSULTA_POR_DEFECTO: "juzgado" no está en las consultas (reportes)'],
-    ['el esquema no es un identificador', { ...dosBases, ORACLE_JUZGADO_ESQUEMA: 'x; drop table t' }, 'no es un nombre de esquema'],
+    ['el esquema no es un identificador', { ...dosBases, ORACLE_REPORTES_ESQUEMA: 'x; drop table t' }, 'no es un nombre de esquema'],
   ])('error si %s', (_caso, entorno, mensaje) => {
     expect(() => leerConfiguracion(entorno)).toThrow(ErrorConfiguracion)
     expect(() => leerConfiguracion(entorno)).toThrow(mensaje)
@@ -69,7 +72,6 @@ describe('leerConfiguracion con una conexión PostgreSQL', () => {
   })
 
   it.each<[string, NodeJS.ProcessEnv, string]>([
-    ['es el almacén', { ...conLocal, ALMACEN: 'local' }, 'ALMACEN: "local" es PostgreSQL'],
     ['tiene también variables ORACLE_', { ...conLocal, ORACLE_LOCAL_USUARIO: 'x' }, 'tiene variables ORACLE_LOCAL_* y POSTGRES_LOCAL_*'],
     ['la conexión no es host/base', { ...conLocal, POSTGRES_LOCAL_CONEXION: 'localhost:5432' }, 'POSTGRES_LOCAL_CONEXION tiene que ser host[:puerto]/base'],
     ['el esquema no es una lista de identificadores', { ...conLocal, POSTGRES_LOCAL_ESQUEMA: 'prueba; drop table t' }, 'no es una lista de esquemas'],
@@ -79,33 +81,33 @@ describe('leerConfiguracion con una conexión PostgreSQL', () => {
   })
 })
 
-describe('leerConfiguracion con el .env de antes', () => {
-  const antes: NodeJS.ProcessEnv = { ORACLE_USUARIO: 'kalc', ORACLE_CLAVE: 'x', ORACLE_CONEXION: JUZGADO }
+describe('leerConfiguracion con el formato simple', () => {
+  const simple: NodeJS.ProcessEnv = { POSTGRES_USUARIO: 'kalc', POSTGRES_CLAVE: 'x', POSTGRES_CONEXION: POSTGRES }
 
-  it('ORACLE_* es la conexión principal, para todo', () => {
-    expect(leerConfiguracion(antes)).toEqual({
-      conexiones: [{ nombre: 'principal', tipo: 'oracle', usuario: 'kalc', clave: 'x', conexion: JUZGADO }],
+  it('POSTGRES_* es la conexión principal, para todo', () => {
+    expect(leerConfiguracion(simple)).toEqual({
+      conexiones: [{ nombre: 'principal', tipo: 'postgres', usuario: 'kalc', clave: 'x', conexion: POSTGRES }],
       almacen: 'principal',
       consultas: ['principal'],
     })
   })
 
-  it('con ORACLE_CONSULTAS_USUARIO las consultas corren solo con ese usuario, en la misma base si no dice otra', () => {
-    const c = leerConfiguracion({ ...antes, ORACLE_ESQUEMA: 'kalc', ORACLE_CONSULTAS_USUARIO: 'ro', ORACLE_CONSULTAS_CLAVE: 'z' })
+  it('con POSTGRES_CONSULTAS_USUARIO las consultas corren solo con ese usuario, en la misma base si no dice otra', () => {
+    const c = leerConfiguracion({ ...simple, POSTGRES_ESQUEMA: 'kalc', POSTGRES_CONSULTAS_USUARIO: 'ro', POSTGRES_CONSULTAS_CLAVE: 'z' })
     expect(c).toEqual({
       conexiones: [
-        { nombre: 'principal', tipo: 'oracle', usuario: 'kalc', clave: 'x', conexion: JUZGADO, esquema: 'kalc' },
-        { nombre: 'consultas', tipo: 'oracle', usuario: 'ro', clave: 'z', conexion: JUZGADO },
+        { nombre: 'principal', tipo: 'postgres', usuario: 'kalc', clave: 'x', conexion: POSTGRES, esquema: 'kalc' },
+        { nombre: 'consultas', tipo: 'postgres', usuario: 'ro', clave: 'z', conexion: POSTGRES },
       ],
       almacen: 'principal',
       consultas: ['consultas'],
     })
-    expect(leerConfiguracion({ ...antes, ORACLE_CONSULTAS_USUARIO: 'ro', ORACLE_CONSULTAS_CLAVE: 'z', ORACLE_CONSULTAS_CONEXION: REPORTES }).conexiones[1]?.conexion).toBe(REPORTES)
+    expect(leerConfiguracion({ ...simple, POSTGRES_CONSULTAS_USUARIO: 'ro', POSTGRES_CONSULTAS_CLAVE: 'z', POSTGRES_CONSULTAS_CONEXION: 'otro/kalc' }).conexiones[1]?.conexion).toBe('otro/kalc')
   })
 
   it('error si falta un dato', () => {
-    expect(() => leerConfiguracion({ ...antes, ORACLE_CONEXION: undefined })).toThrow('Falta la variable de entorno ORACLE_CONEXION')
-    expect(() => leerConfiguracion({ ...antes, ORACLE_CONSULTAS_USUARIO: 'ro' })).toThrow('ORACLE_CONSULTAS_CLAVE')
+    expect(() => leerConfiguracion({ ...simple, POSTGRES_CONEXION: undefined })).toThrow('Falta la variable de entorno POSTGRES_CONEXION')
+    expect(() => leerConfiguracion({ ...simple, POSTGRES_CONSULTAS_USUARIO: 'ro' })).toThrow('POSTGRES_CONSULTAS_CLAVE')
   })
 })
 

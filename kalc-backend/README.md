@@ -1,8 +1,8 @@
 # kalc-backend
 
-La **API de variables de Kalc**, en Node + Express sobre Oracle (`oracledb`). Guarda las variables
+La **API de variables de Kalc**, en Node + Express sobre PostgreSQL (`pg`). Guarda las variables
 en la tabla `motor_variables` y corre las variables de consulta (los `SELECT` con parámetros), en
-Oracle o en PostgreSQL (`pg`). No
+PostgreSQL o en las bases Oracle que se le conecten (`oracledb`). No
 calcula fórmulas: eso lo hace [Kalc](../kalc), la librería, en el navegador de cada frontend.
 Usa Kalc instalado desde el `.tgz` (`paquetes/`) para validar variables, leer los parámetros
 `:Nombre` y convertir entre los valores de Kalc y los de la base.
@@ -21,7 +21,7 @@ Requiere Node 22.12 o posterior (corre los `.ts` sin compilar).
 npm install
 cp .env.example .env  # y completar la conexión a la base (ver abajo)
 npm start             # la API en http://localhost:7201/api/variables (node --watch)
-npm test              # Vitest: rutas, consultas (Oracle y PostgreSQL), repositorio Oracle (con pools falsos), .env
+npm test              # Vitest: rutas, consultas (PostgreSQL y Oracle), repositorio (con pools falsos), .env
 npm run typecheck     # tsc, como Node 18 (lib ES2022)
 npm run publicar      # a un servidor Windows con IIS (ver Despliegue)
 ```
@@ -32,108 +32,35 @@ En desarrollo no hace falta levantarla a mano: el `npm start` de `kalc-frontend`
 
 ## La base
 
-1. Crear la tabla una vez en el esquema: `db/oracle/variables.sql` (con `sqlplus`, por el `/` del
-   trigger). El id sale de una secuencia con un trigger y no se usa `IS JSON`: así anda también en
-   bases 18c con el parámetro `COMPATIBLE` en 11, que no aceptan `IDENTITY` (ORA-00406). Si la
-   tabla se creó antes de la 1.2.0 de Kalc, correr también `db/oracle/variables-1.2.0.sql` (acepta
-   el tipo `tabla`; sin eso, guardar una variable de tipo tabla da error 500 por el CHECK de la
-   columna `tipo`), y si es de antes de la 1.3.0, `db/oracle/variables-1.3.0.sql` (la columna
-   `COLUMNAS`; sin ella no lista las variables). `db/oracle/select_motor.sql` muestra lo que hay
-   guardado.
-2. Copiar `.env.example` como `.env` y completar `ORACLE_USUARIO`, `ORACLE_CLAVE` y
-   `ORACLE_CONEXION`: un alias del `tnsnames.ora` (con `TNS_ADMIN`), el descriptor completo
-   (sirve con SID) o `host:puerto/servicio`; hay ejemplos de los tres en `.env.example`. `.env` no
-   se versiona.
+1. Crear la base con `db/postgres/crear.sql`, como superusuario. Crea los usuarios `kalc` (el
+   dueño, el del almacén) y `kalc_lectura` (solo `SELECT` en los esquemas de ejemplo: el de las
+   consultas), la base `kalc`, la tabla `kalc.motor_variables` y los esquemas de ejemplo. Se puede
+   volver a correr: los esquemas de ejemplo se recargan, y las variables guardadas no se tocan.
 
-   **Varias bases**: con `CONEXIONES=desarrollo,reportes`, cada una se declara con su nombre
-   (`ORACLE_DESARROLLO_USUARIO`, `_CLAVE`, `_CONEXION` y, opcional, `_ESQUEMA`, que fija el
-   esquema de la sesión); `ALMACEN` dice dónde está `motor_variables` y `CONSULTAS` dónde pueden
-   correr las variables de consulta (la primera es la de por defecto; una variable puede elegir
-   otra de la lista). Ejemplo completo en `.env.example`. Cada pool se abre la primera vez que se
-   usa: con una base caída, la API arranca igual y falla solo lo que la usa.
+   ```sh
+   psql -h localhost -U postgres -v clave_kalc=<clave> -v clave_lectura=<clave> -f db/postgres/crear.sql
+   ```
 
-   Si al conectar da `NJS-116: password verifier type 0x939 is not supported`, la clave del
-   usuario está guardada con el verificador viejo de Oracle 10g, que el modo thin no acepta.
-   Reasignarle la clave (`ALTER USER … IDENTIFIED BY …`, puede ser la misma) genera los
-   verificadores nuevos, salvo que la base solo genere el de 10g (con `SEC_CASE_SENSITIVE_LOGON`
-   en FALSE). Si no, modo thick: bajar el
-   [Instant Client](https://www.oracle.com/database/technologies/instant-client/winx64-64-downloads.html)
-   19 o posterior (Basic Light alcanza, es un zip), descomprimirlo y poner su carpeta en
-   `ORACLE_CLIENTE` (`D:\oracle\instantclient_19_25`). Un cliente 12.2 no sirve: `oracledb` pide 19
-   o posterior (DPI-1050). En el servidor hace falta lo mismo.
+   Para usar otro PostgreSQL, sin los ejemplos, alcanza con `db/postgres/variables.sql`.
+
+2. Copiar `.env.example` como `.env` y completar las claves. `.env` no se versiona. Trae dos
+   conexiones a la misma base: `almacen` (usuario `kalc`, guarda las variables) y `local` (usuario
+   `kalc_lectura`, corre las consultas). Es la única conexión que escribe: las demás abren sesiones
+   de solo lectura.
+
+   Con `CONEXIONES`, cada conexión se declara con su nombre (`POSTGRES_<NOMBRE>_USUARIO`, `_CLAVE`,
+   `_CONEXION` y, opcional, `_ESQUEMA`); `ALMACEN` dice dónde está `motor_variables` y `CONSULTAS`
+   dónde pueden correr las variables de consulta (la primera es la de por defecto; una variable
+   puede elegir otra de la lista). Para una sola base, sin `CONEXIONES`: `POSTGRES_USUARIO`,
+   `POSTGRES_CLAVE`, `POSTGRES_CONEXION` y `POSTGRES_ESQUEMA`. Cada pool se abre la primera vez que
+   se usa: con una base caída, la API arranca igual y falla solo lo que la usa.
+
 3. `npm start`. El `.env` se lee solo al arrancar, y `node --watch` no lo vigila: después de
    cambiarlo, cerrar y volver a arrancar. Una variable de entorno de Windows con el mismo nombre
    gana sobre el `.env`.
 
-Para probar sin una base Oracle propia alcanza con
-[Oracle Database Free](https://www.oracle.com/database/free/) (también en Docker), con
-`ORACLE_CONEXION=localhost:1521/FREEPDB1`.
-
-### Usar otra base (esquema nuevo, sin `motor_variables`)
-
-Para pasar a un esquema nuevo hacen falta estos datos, que en los pasos van así:
-
-| En los pasos | Qué es | Ejemplo |
-|---|---|---|
-| `<host>` | host de la base | `servidor` |
-| `<puerto>` | puerto | `1521` |
-| `<sid>` | SID | `ORCL` |
-| `<usuario>` | usuario del esquema, que pueda crear tablas, secuencias, triggers e índices | `KALC` |
-| `<clave>` | su clave | |
-
-1. **Probar la conexión** con ese usuario (sqlplus u otro cliente), con el descriptor completo.
-   Con SID, la forma corta `host:puerto/servicio` no sirve:
-
-   ```
-   (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=<puerto>))(CONNECT_DATA=(SID=<sid>)))
-   ```
-
-2. **Crear la tabla**, una sola vez: `db/oracle/variables.sql`, con sqlplus (por el `/` del trigger).
-   Crea la secuencia, la tabla `motor_variables`, el trigger del id y el índice único por nombre.
-   En una base nueva **no** hacen falta `variables-1.2.0.sql` ni `variables-1.3.0.sql`: son
-   migraciones de tablas viejas.
-
-   ```sh
-   sqlplus <usuario>/<clave>@"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=<puerto>))(CONNECT_DATA=(SID=<sid>)))" @db/oracle/variables.sql
-   ```
-
-3. **Cambiar el `.env`** (antes, guardar una copia del actual para poder volver):
-
-   ```sh
-   ORACLE_USUARIO=<usuario>
-   ORACLE_CLAVE=<clave>
-   ORACLE_CONEXION=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=<puerto>))(CONNECT_DATA=(SID=<sid>)))
-   ```
-
-   `ORACLE_CLIENTE` (modo thick, con el Instant Client) puede quedar como está: anda en los dos
-   casos. Hace falta si al conectar da `NJS-116`. Las `ORACLE_CONSULTAS_*` son opcionales: otro
-   usuario, de solo lectura, para las consultas.
-
-   Para mover solo el almacén y seguir consultando la base de antes, conexiones con nombre:
-
-   ```sh
-   CONEXIONES=desarrollo,reportes
-   ALMACEN=desarrollo
-   CONSULTAS=reportes
-   ORACLE_DESARROLLO_USUARIO=<usuario>
-   ORACLE_DESARROLLO_CLAVE=<clave>
-   ORACLE_DESARROLLO_CONEXION=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=<host>)(PORT=<puerto>))(CONNECT_DATA=(SID=<sid>)))
-   ORACLE_REPORTES_USUARIO=...      # los ORACLE_* de antes, con el nombre en el medio
-   ORACLE_REPORTES_CLAVE=...
-   ORACLE_REPORTES_CONEXION=...
-   ```
-
-   Las variables del almacén anterior se pasan exportando el JSON desde la página Variables e
-   importándolo después del cambio.
-
-4. **Reiniciar la API**: cerrar lo que esté en el 7201 (también el `npm start` de `kalc-frontend`,
-   si la levantó) y volver a arrancar. Los errores de
-   conexión salen en su consola.
-
-Lo que no viene solo: las variables de la base anterior (no pasan, salvo copiando las filas de
-`motor_variables`) y las consultas, que leen tablas del esquema anterior: en el nuevo hay que
-escribirlas contra tablas que existan (o darle permisos o sinónimos al usuario). kalc-frontend
-pasa a la base nueva solo: usa esta API.
+Para pasar las variables de una base a otra: exportar el JSON desde la página Variables e
+importarlo después del cambio.
 
 ## La API
 
@@ -159,69 +86,66 @@ muestra. kalc-frontend la pone en su pie.
 **Variables de consulta.** La API corre el SQL que tiene **guardado** en la variable: se mandan el
 nombre y los valores de los parámetros, nunca SQL. Por eso un frontend guarda la variable antes de
 pedir correrla. Antes de correrlo controla que sea una sola sentencia `SELECT` (o `WITH`), sin
-`FOR UPDATE` ni PL/SQL, y lo corre en una transacción de solo lectura, con 15 segundos como máximo,
-leyendo hasta 2 filas:
+`FOR UPDATE`, y lo corre en una transacción de solo lectura, con 15 segundos como máximo. Los
+parámetros `:Nombre` se escriben igual en cualquier base y van siempre aparte del SQL. En
+PostgreSQL pasan a `$1`, `$2`…, y las filas se leen con un cursor, hasta 2 para un valor y 10.001
+para una tabla:
 
 | Resultado | Valor |
 |---|---|
-| 1 fila, 1 columna | `NUMBER` → número; `VARCHAR2`, `CHAR`, `CLOB` → texto; `DATE`, `TIMESTAMP` → fecha (la hora, como fracción del día); `NULL` → vacío |
+| 1 fila, 1 columna | `integer`, `bigint`, `numeric`, `real`… → número; `varchar`, `text`, `char` → texto; `boolean` → lógico; `date`, `timestamp` → fecha; `NULL` → vacío |
 | sin filas | `#N/D` |
-| más de una fila o de una columna, un tipo que no se puede usar (`BLOB`, `RAW`) | `#¡VALOR!` |
-| error de Oracle | `#¡VALOR!`, con el mensaje (`ORA-00942: …`) en el estado de la fila |
+| más de una fila o de una columna, un tipo que no se puede usar (`json`, arrays, `bytea`) | `#¡VALOR!` |
+| error de la base | `#¡VALOR!`, con el mensaje (`no existe la relación «x»`) en el estado de la fila |
 
 Una de tipo **tabla** lee hasta 10.000 filas (con más, `#¡VALOR!`: hay que filtrar o agrupar en
-el SQL), con los mismos tipos por celda; las columnas se llaman como las devuelve Oracle (en
-mayúscula, salvo un alias entre comillas), y dos con el mismo nombre (`select a.id, b.id`) son un
-error: necesitan alias distintos.
+el SQL), con los mismos tipos por celda; dos columnas con el mismo nombre (`select a.id, b.id`) son
+un error: necesitan alias distintos.
 
-Los parámetros van como *bind variables* (un lógico, como 1 o 0: Oracle 18 no tiene booleanos en
-SQL). Lo que esté en otro esquema se consulta con sinónimos o vistas, o con `_ESQUEMA` en la
-conexión. Conviene que las consultas corran con un usuario de solo lectura: una conexión con ese
-usuario, nombrada en `CONSULTAS` (en el formato simple, `ORACLE_CONSULTAS_USUARIO` y
-`ORACLE_CONSULTAS_CLAVE`; sin eso, usan `ORACLE_USUARIO`).
-
-### Consultas en PostgreSQL
-
-Una conexión puede ser PostgreSQL (`POSTGRES_<NOMBRE>_*` en el `.env`, ver `.env.example`), solo
-para consultas: las variables se guardan siempre en Oracle. El SQL se escribe igual, con los
-parámetros `:Nombre` (la API los pasa a `$1`, `$2`…), y corre igual: transacción de solo lectura
-(además, la sesión abre con `default_transaction_read_only`), 15 segundos como máximo, y las filas
-se leen con un cursor, hasta 2 para un valor y 10.001 para una tabla. Las diferencias:
-
-- Tipos: `integer`, `bigint`, `numeric`, `real`… → número; `varchar`, `text`, `char` → texto;
-  `boolean` → lógico; `date`, `timestamp` → fecha; `json`, arrays, `bytea` → `#¡VALOR!`.
 - Las columnas llegan en minúscula (salvo un alias entre comillas).
 - Un parámetro lógico va como 1 o 0, que PostgreSQL acepta en una columna `boolean`.
-- Se puede convertir con `::` (`fecha::date`, `:Desde::date`): desde Kalc 1.5.1 no se lee como un
-  parámetro. Si PostgreSQL no puede deducir el tipo de un parámetro (`select :x + 1`, con un
-  decimal), hay que decírselo: `:x::numeric`.
-- El error es el de PostgreSQL, sin código (`no existe la relación «x»`).
+- Se puede convertir con `::` (`fecha::date`, `:Desde::date`): no se lee como un parámetro. Si
+  PostgreSQL no puede deducir el tipo de un parámetro (`select :x + 1`, con un decimal), hay que
+  decírselo: `:x::numeric`.
 
-### La base de ejemplo (PostgreSQL)
+Con varias bases, la variable dice en cuál corre (`origen.conexion`) y `GET /api/conexiones` da las
+que se pueden elegir (`{ conexiones, porDefecto }`, solo los nombres). Una conexión que el servidor
+no tiene da 422, con el mensaje en la variable.
 
-La base de ejemplo (`kalc`, en `localhost:5432`) se crea con `db/postgres/crear.sql`, como
-superusuario. Crea los usuarios `kalc` (el dueño) y `kalc_lectura` (solo `SELECT`: el del `.env`)
-y cuatro esquemas, que se vuelven a cargar cada vez que se corre. Los datos son inventados:
+### La base de ejemplo
 
-```sh
-psql -h localhost -U postgres -v clave_kalc=<clave> -v clave_lectura=<clave> -f db/postgres/crear.sql
-```
+`db/postgres/crear.sql` carga cuatro esquemas de ejemplo, con datos inventados:
 
 | Esquema | Tablas |
 |---|---|
-| `juzgado` | el de las variables iniciales de kalc-frontend: `expedientes` (400), `fueros`, `estados`, `jurisdicciones`, `regiones`. Las fechas de alta son relativas al día en que se carga |
-| `hr` | el de ejemplo HR de Oracle: `employees` (107), `departments`, `jobs`, `job_history`, `locations`, `countries`, `regions` y la vista `emp_details_view` |
+| `kalc_data` | el de las variables iniciales de kalc-frontend: `expedientes` (400), `fueros`, `estados`, `jurisdicciones`, `regiones`. Las fechas de alta son relativas al día en que se carga |
+| `hr` | el clásico esquema HR: `employees` (107), `departments`, `jobs`, `job_history`, `locations`, `countries`, `regions` y la vista `emp_details_view` |
 | `scott` | el clásico SCOTT/TIGER: `emp` (14), `dept`, `salgrade`, `bonus` |
 | `prueba` | para Kalc: `actividades` (con alícuotas de IVA e IIBB), `alicuotas_iva`, `escala` (por tramos), `feriados` 2026, `cotizaciones` (diarias, USD y EUR), `productos`, `sucursales`, `ventas` (2000) |
 
-Con `POSTGRES_LOCAL_ESQUEMA=juzgado,prueba,hr,scott` las tablas se nombran sin esquema, y con
-`local` primera en `CONSULTAS`, las variables iniciales de kalc-frontend corren ahí. Por ejemplo,
+Con `POSTGRES_LOCAL_ESQUEMA=kalc_data,prueba,hr,scott` las tablas se nombran sin esquema. Por ejemplo,
 de tipo número: `select count(*) from expedientes where baja is null`; de tipo tabla:
 `select department_name, count(*) as empleados from emp_details_view group by department_name`.
 
-Con varias bases, la variable dice en cuál corre (`origen.conexion`, desde Kalc 1.5.0) y
-`GET /api/conexiones` da las que se pueden elegir (`{ conexiones, porDefecto }`, solo los nombres).
-Una conexión que el servidor no tiene da 422, con el mensaje en la variable.
+### Consultas en Oracle
+
+Una conexión puede ser Oracle (`ORACLE_<NOMBRE>_*` en el `.env`, ver `.env.example`), solo para
+consultas: se agrega a `CONEXIONES` y a `CONSULTAS`, y la fila de la variable elige en qué base
+corre. El SQL se escribe igual, con `:Nombre` (van como *bind variables*). Las diferencias:
+
+- Tipos: `NUMBER` → número; `VARCHAR2`, `CHAR`, `CLOB` → texto; `DATE`, `TIMESTAMP` → fecha (la
+  hora, como fracción del día); `BLOB`, `RAW` → `#¡VALOR!`.
+- Las columnas llegan en mayúscula (salvo un alias entre comillas).
+- Un parámetro lógico va como 1 o 0: Oracle 18 no tiene booleanos en SQL.
+- Tampoco se acepta declarar PL/SQL en la consulta. Lo que esté en otro esquema se consulta con
+  sinónimos, vistas o `_ESQUEMA` en la conexión. Conviene un usuario de solo lectura.
+- Si al conectar da `NJS-116: password verifier type 0x939 is not supported`, la clave del usuario
+  está guardada con el verificador viejo de Oracle 10g, que el modo thin no acepta. Reasignarle la
+  clave (`ALTER USER … IDENTIFIED BY …`, puede ser la misma) genera los verificadores nuevos, salvo
+  que la base solo genere el de 10g. Si no, modo thick: bajar el
+  [Instant Client](https://www.oracle.com/database/technologies/instant-client/winx64-64-downloads.html)
+  19 o posterior (Basic Light alcanza, es un zip), descomprimirlo y poner su carpeta en
+  `ORACLE_CLIENTE`. Un cliente 12.2 no sirve: `oracledb` pide 19 o posterior (DPI-1050).
 
 ## Pasar a otra versión de Kalc
 
@@ -251,7 +175,7 @@ carpeta, como archivos estáticos en la carpeta `kalc` del IIS; su `web.config` 
 ```
 navegador ──► IIS  /kalc/          kalc-frontend (C:\inetpub\wwwroot\kalc, lo publica kalc-frontend)
                    /kalc/api/…  ──► http://localhost:8082/api/…  node servidor\index.js (C:\app\kalc-backend)
-                                                                  └─► Oracle (y PostgreSQL, si hay)
+                                                                  └─► PostgreSQL (y Oracle, si hay)
 ```
 
 El servidor puede tener Node 18: `npm run publicar` compila a JavaScript
@@ -293,10 +217,8 @@ El destino sale de dos variables de entorno, sin valores por defecto:
    del destino.
 
 3. En el servidor, crear `C:\app\kalc-backend\.env` (como el de `.env.example`), con `PUERTO=8082`
-   y la conexión a la base. `ORACLE_CLIENTE` hace falta solo si la clave del usuario tiene el
-   verificador de Oracle 10g (NJS-116); el Instant Client se copia como carpeta, sin instalar.
-   La tabla `motor_variables` tiene que existir en ese esquema (ver [La base](#la-base)), y el
-   servidor tiene que llegar a la base.
+   y la conexión a la base. La tabla `motor_variables` tiene que existir (ver
+   [La base](#la-base)), y el servidor tiene que llegar a la base.
 
 4. En el servidor, en PowerShell como administrador:
 
@@ -356,18 +278,16 @@ corre los tests y el chequeo de tipos, hace el commit `Versión X.Y.Z` con su ta
 
 ```
 src/
-  index.ts              arranca: lee el .env, abre los pools (Oracle y PostgreSQL) y escucha en PUERTO (7201)
+  index.ts              arranca: lee el .env, abre los pools (PostgreSQL y Oracle) y escucha en PUERTO (7201)
   conexiones.ts         las conexiones del .env (con nombre, o el formato simple) y sus pools, que se abren al usarlos
-  app.ts                las rutas de la API, sobre cualquier RepositorioVariables (Oracle, o uno en memoria en los tests)
-  repositorioOracle.ts  RepositorioVariables sobre la tabla motor_variables
-  consultas.ts          corre las variables de consulta: valida el SELECT, solo lectura, Oracle ↔ Valor de Kalc
-  postgres.ts           lo mismo en PostgreSQL: :Nombre → $1, cursor de solo lectura, tipos de pg ↔ Valor
+  app.ts                las rutas de la API, sobre cualquier RepositorioVariables (PostgreSQL, o uno en memoria en los tests)
+  repositorioPostgres.ts  RepositorioVariables sobre la tabla motor_variables
+  postgres.ts           corre las variables de consulta en PostgreSQL: :Nombre → $1, cursor de solo lectura, tipos de pg ↔ Valor
+  consultas.ts          valida el SELECT, y lo mismo en Oracle: solo lectura, Oracle ↔ Valor de Kalc
   entorno.ts            lee el .env a mano (Node 18 no tiene --env-file)
   puerto.ts             antes de listen: en Windows, si el puerto lo tiene el IIS, listen no falla
   *.test.ts             tests al lado del código
-db/oracle/              la tabla motor_variables y sus migraciones, en Oracle; se corren a mano en el esquema.
-                        Otra base iría en db/<base>/, con su repositorio en src/ (como repositorioOracle.ts)
-db/postgres/            la base PostgreSQL de ejemplo para consultas: crear.sql (usuarios y base) carga juzgado, hr, scott y prueba
+db/postgres/            la base: crear.sql (usuarios y base) carga variables.sql (el almacén) y los ejemplos: kalc_data, hr, scott y prueba
 paquetes/               el .tgz de Kalc, commiteado
 scripts/
   publicar.mjs          publica en un servidor Windows con IIS (ver Despliegue)

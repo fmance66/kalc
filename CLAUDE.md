@@ -6,7 +6,7 @@ README y su CLAUDE.md:
 | Carpeta | Qué es | Puerto |
 |---|---|---|
 | `kalc/` | la librería: el motor de fórmulas tipo Excel (`motor/`); `npm run pack` → `packs/kalc-X.Y.Z.tgz` | — |
-| `kalc-backend/` | la API de variables (Express + oracledb + pg): Oracle (`motor_variables`, scripts en `db/oracle/`) y las consultas, en Oracle o PostgreSQL (`db/postgres/`) | 7201 |
+| `kalc-backend/` | la API de variables (Express + pg + oracledb): PostgreSQL (`motor_variables`, scripts en `db/postgres/`) y las consultas, en PostgreSQL u Oracle | 7201 |
 | `kalc-frontend/` | la aplicación en Vue 3 + PrimeVue: Probador, Variables, Funciones, Ayuda | 7200 |
 
 ## Qué va acá y qué en cada carpeta

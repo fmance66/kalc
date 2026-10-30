@@ -59,7 +59,7 @@ export const VARIABLES_POSTGRES: Variable[] = [
     nombre: 'Empleados',
     tipo: 'tabla',
     origen: consulta("select employee_id as id,\n       first_name || ' ' || last_name as nombre,\n       job_id as puesto,\n       salary as sueldo,\n       hire_date as alta,\n       department_id as departamento\nfrom employees\norder by employee_id"),
-    descripcion: 'PostgreSQL (hr): los 107 empleados del esquema de ejemplo de Oracle',
+    descripcion: 'PostgreSQL (hr): los 107 empleados del esquema de ejemplo',
   },
   { nombre: 'Sueldo promedio de IT', tipo: 'numero', origen: { clase: 'formula', texto: 'REDONDEAR(PROMEDIO.SI(Empleados[Departamento]; 60; Empleados[Sueldo]); 2)' }, descripcion: 'PROMEDIO.SI sobre la tabla Empleados (departamento 60 = IT)' },
   {

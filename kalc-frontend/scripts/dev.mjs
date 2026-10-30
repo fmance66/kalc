@@ -1,4 +1,4 @@
-// npm start: kalc-backend (7201, la API de variables y consultas a Oracle) y la app (7200) juntos,
+// npm start: kalc-backend (7201, la API de variables y consultas) y la app (7200) juntos,
 // en la misma terminal. kalc-backend está en ../kalc-backend (o en KALC_BACKEND_DIR) y lee su
 // propio .env. Si no está o no arranca, la app sigue: las consultas dan un error que lo explica. Si
 // ya está corriendo (por ejemplo, desde otra terminal), usa ese. Ctrl+C cierra los dos.
@@ -26,7 +26,7 @@ let servidor = null
 if (await ocupado(PUERTO)) {
   console.log(`\n[dev] Ya hay algo en el ${PUERTO} (¿kalc-backend de otra terminal?): la app usa eso.\n`)
 } else if (existsSync(resolve(backend, 'src/index.ts'))) {
-  servidor = correr(['--watch', 'src/index.ts'], backend)
+  servidor = correr(['--experimental-strip-types', '--no-warnings', '--watch', 'src/index.ts'], backend)
   servidor.on('exit', (codigo) => {
     if (codigo) console.error(`\n[dev] kalc-backend terminó (código ${codigo}); la app sigue sin él.\n`)
   })

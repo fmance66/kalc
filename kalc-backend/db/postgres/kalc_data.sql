@@ -3,9 +3,9 @@
 --
 -- Los expedientes salen de un hash de su número (siempre los mismos), pero las fechas de alta son
 -- relativas al día en que se carga: así "las altas de los últimos 30 días" siempre da algo.
-DROP SCHEMA IF EXISTS juzgado CASCADE;
-CREATE SCHEMA juzgado;
-SET search_path = juzgado;
+DROP SCHEMA IF EXISTS kalc_data CASCADE;
+CREATE SCHEMA kalc_data;
+SET search_path = kalc_data;
 
 CREATE TABLE fueros (
   codigo      integer PRIMARY KEY,

@@ -19,7 +19,7 @@ export interface DatosConexion {
 
 export interface Configuracion {
   conexiones: DatosConexion[]
-  /** La conexión donde está `motor_variables`. */
+  /** La conexión donde está `motor_variables`: siempre PostgreSQL. */
   almacen: string
   /** Las conexiones en las que pueden correr las variables de consulta; la primera es la de por defecto. */
   consultas: string[]
@@ -40,18 +40,18 @@ export const CONEXION_POSTGRES = /^([^\s:/]+)(?::(\d+))?\/([^\s/]+)$/
 /**
  * Las conexiones del `.env`. Dos formatos (ver .env.example):
  *
- * - Con nombre: `CONEXIONES=juzgado,reportes` y por cada una `ORACLE_<NOMBRE>_USUARIO`, `_CLAVE`,
- *   `_CONEXION` y `_ESQUEMA` (opcional), o las mismas con `POSTGRES_<NOMBRE>_` si es una base
- *   PostgreSQL (solo para consultas). `ALMACEN` dice dónde está `motor_variables` (si falta, la
- *   primera), `CONSULTAS` dónde pueden correr las consultas (si falta, en todas) y
- *   `CONSULTA_POR_DEFECTO` cuál de esas se usa si la variable no dice (si falta, la primera).
- * - El de antes (sin `CONEXIONES`): `ORACLE_USUARIO`, `_CLAVE`, `_CONEXION` y `_ESQUEMA` son la
- *   conexión `principal`. Si está `ORACLE_CONSULTAS_USUARIO`, las consultas corren solo en
- *   `consultas` (ese usuario, en `ORACLE_CONSULTAS_CONEXION` o la misma base), como hasta ahora.
+ * - Con nombre: `CONEXIONES=almacen,local` y por cada una `POSTGRES_<NOMBRE>_USUARIO`, `_CLAVE`,
+ *   `_CONEXION` y `_ESQUEMA` (opcional), o las mismas con `ORACLE_<NOMBRE>_` si es una base Oracle
+ *   (solo para consultas). `ALMACEN` dice dónde está `motor_variables` (si falta, la primera),
+ *   `CONSULTAS` dónde pueden correr las consultas (si falta, en todas) y `CONSULTA_POR_DEFECTO`
+ *   cuál de esas se usa si la variable no dice (si falta, la primera).
+ * - Simple (sin `CONEXIONES`): `POSTGRES_USUARIO`, `_CLAVE`, `_CONEXION` y `_ESQUEMA` son la
+ *   conexión `principal`. Si está `POSTGRES_CONSULTAS_USUARIO`, las consultas corren solo en
+ *   `consultas` (ese usuario, en `POSTGRES_CONSULTAS_CONEXION` o la misma base).
  */
 export function leerConfiguracion(entorno: NodeJS.ProcessEnv): Configuracion {
   const lista = entorno['CONEXIONES']?.trim()
-  return lista ? conNombre(lista, entorno) : anterior(entorno)
+  return lista ? conNombre(lista, entorno) : simple(entorno)
 }
 
 function requerida(entorno: NodeJS.ProcessEnv, clave: string): string {
@@ -60,7 +60,7 @@ function requerida(entorno: NodeJS.ProcessEnv, clave: string): string {
   return valor
 }
 
-function datos(nombre: string, entorno: NodeJS.ProcessEnv, prefijo: string, conexion?: string): DatosConexion {
+function datos(nombre: string, entorno: NodeJS.ProcessEnv, prefijo: string): DatosConexion {
   const esquema = entorno[`${prefijo}_ESQUEMA`]?.trim()
   if (esquema && !ESQUEMA.test(esquema)) throw new ErrorConfiguracion(`${prefijo}_ESQUEMA no es un nombre de esquema: ${esquema}`)
   return {
@@ -68,7 +68,7 @@ function datos(nombre: string, entorno: NodeJS.ProcessEnv, prefijo: string, cone
     tipo: 'oracle',
     usuario: requerida(entorno, `${prefijo}_USUARIO`),
     clave: requerida(entorno, `${prefijo}_CLAVE`),
-    conexion: conexion ?? requerida(entorno, `${prefijo}_CONEXION`),
+    conexion: requerida(entorno, `${prefijo}_CONEXION`),
     ...(esquema ? { esquema } : {}),
   }
 }
@@ -120,8 +120,8 @@ function conNombre(lista: string, entorno: NodeJS.ProcessEnv): Configuracion {
     return n
   }
   const almacen = existe('ALMACEN', entorno['ALMACEN']?.trim().toLowerCase() || declaradas[0]!)
-  // motor_variables solo está para Oracle (repositorioOracle.ts).
-  if (conexiones.find((c) => c.nombre === almacen)?.tipo !== 'oracle') throw new ErrorConfiguracion(`ALMACEN: "${almacen}" es PostgreSQL; las variables se guardan en una base Oracle`)
+  // motor_variables solo está para PostgreSQL (repositorioPostgres.ts).
+  if (conexiones.find((c) => c.nombre === almacen)?.tipo !== 'postgres') throw new ErrorConfiguracion(`ALMACEN: "${almacen}" no es PostgreSQL; las variables se guardan en una base PostgreSQL`)
   const consultas = entorno['CONSULTAS']?.trim() ? nombres(entorno['CONSULTAS']).map((n) => existe('CONSULTAS', n)) : declaradas
   // La de por defecto es la primera de la lista: se la pasa adelante, sin tocar el resto del orden.
   const porDefecto = entorno['CONSULTA_POR_DEFECTO']?.trim().toLowerCase()
@@ -130,14 +130,14 @@ function conNombre(lista: string, entorno: NodeJS.ProcessEnv): Configuracion {
   return { conexiones, almacen, consultas: [porDefecto, ...consultas.filter((n) => n !== porDefecto)] }
 }
 
-function anterior(entorno: NodeJS.ProcessEnv): Configuracion {
-  const principal = datos('principal', entorno, 'ORACLE')
-  if (!entorno['ORACLE_CONSULTAS_USUARIO']?.trim()) return { conexiones: [principal], almacen: 'principal', consultas: ['principal'] }
-  const consultas = datos('consultas', entorno, 'ORACLE_CONSULTAS', entorno['ORACLE_CONSULTAS_CONEXION']?.trim() || principal.conexion)
+function simple(entorno: NodeJS.ProcessEnv): Configuracion {
+  const principal = datosPostgres('principal', entorno, 'POSTGRES')
+  if (!entorno['POSTGRES_CONSULTAS_USUARIO']?.trim()) return { conexiones: [principal], almacen: 'principal', consultas: ['principal'] }
+  const consultas = datosPostgres('consultas', { ...entorno, POSTGRES_CONSULTAS_CONEXION: entorno['POSTGRES_CONSULTAS_CONEXION']?.trim() || principal.conexion }, 'POSTGRES_CONSULTAS')
   return { conexiones: [principal, consultas], almacen: 'principal', consultas: ['consultas'] }
 }
 
-/** Los atributos del pool de una conexión: con esquema, cada sesión nueva lo fija al abrirse. */
+/** Los atributos del pool de una conexión Oracle: con esquema, cada sesión nueva lo fija al abrirse. */
 export function atributosPool(d: DatosConexion, tamanio: { poolMin: number; poolMax: number }): oracledb.PoolAttributes {
   const { esquema } = d
   return {

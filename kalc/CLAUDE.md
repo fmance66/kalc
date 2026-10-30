@@ -14,7 +14,7 @@ que las de una planilla de cálculo (Excel). Esta carpeta tiene solo la librerí
 2. Variables con nombre: cada una es una **constante** (valor tipado) o una **fórmula** que puede
    usar otras variables. El motor resuelve las dependencias, detecta ciclos y recalcula.
 3. Persistencia y consultas detrás de interfaces (`RepositorioVariables`, `EjecutorConsultas`): el
-   motor no guarda ni corre SQL, lo pone cada aplicación (`kalc-backend` en Oracle, `kalc-frontend`
+   motor no guarda ni corre SQL, lo pone cada aplicación (`kalc-backend` en PostgreSQL, `kalc-frontend`
    en el navegador o por HTTP).
 
 ## Las tres partes
@@ -25,7 +25,7 @@ están en el README general, `../README.md`.
 
 Lo de esta carpeta: la librería se consume solo por el `.tgz` (`import … from 'kalc'`).
 Al cambiar el motor: versión nueva, `npm run pack` y actualizar el `.tgz` en `kalc-backend` y en
-`kalc-frontend`. La base (`.env` con `ORACLE_*`, `db/oracle/*.sql`) es de `kalc-backend`; acá no
+`kalc-frontend`. La base (`.env` con `POSTGRES_*`, `db/postgres/*.sql`) es de `kalc-backend`; acá no
 hay `.env`.
 
 ## Stack
@@ -192,7 +192,7 @@ interface Variable {
 - Tipo `tabla`: de una consulta, de una fórmula (`FILTRAR(…)`: arrays dinámicos, ver abajo) o de
   `{ clase: 'datos'; tabla }` (escrita a mano). Puede tener `columnas?: { nombre, formula }[]`,
   calculadas fila por fila con `[@Columna]` (contexto `fila`); usan su propia tabla sin ciclo (la
-  propia no es dependencia). En Oracle van en la columna `COLUMNAS` (JSON).
+  propia no es dependencia). En la base van en la columna `columnas` (JSON).
 - Arrays dinámicos (evaluador): una operación con una tabla o columna va celda por celda
   (`esDeRango` lo decide por la forma del árbol; `evaluarMatriz` da el rango); como argumento, el
   `Argumento` trae `rango()`; como valor suelto, `valorDeRango` (#¡VALOR! si hay varias celdas);
@@ -246,11 +246,11 @@ posiciones de los nodos (el árbol del Probador), `leerDatos`/`escribirDatos` (t
 
 ## Plan por etapas
 
-Hechas las etapas 1 a 5 (07/10/2026). De la 6, la persistencia en Oracle y las variables de consulta (08/10/2026, versión 1.1.0)
+Hechas las etapas 1 a 5 (07/10/2026). De la 6, la persistencia en la base y las variables de consulta (08/10/2026, versión 1.1.0)
 y las consultas de tipo tabla (08/10/2026, versión 1.2.0). Después de la 1.2.0 (09/10/2026, sin
 versión nueva todavía): modo thick opcional de Oracle, ejemplos con consultas, la API sin caché y
 la tabla de ejemplo `Causas`. Después (09/10/2026): arrays dinámicos, tablas a mano (clase Datos)
-y columnas calculadas con `[@Columna]` (para la 1.3.0, con la migración `variables-1.3.0.sql`).
+y columnas calculadas con `[@Columna]` (para la 1.3.0).
 
 1. **Esqueleto**: proyecto Vite + Vue andando en 7200, tsconfig app/lib/node, Vitest, `.npmrc`,
    `.gitignore`, página vacía con las cuatro solapas.

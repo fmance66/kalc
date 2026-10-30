@@ -29,6 +29,10 @@ describe('opcionesPostgres', () => {
     expect(opcionesPostgres({ ...d, conexion: 'db:5433/otra', esquema: 'prueba,hr' })).toMatchObject({ host: 'db', port: 5433, database: 'otra', options: '-c default_transaction_read_only=on -c search_path=prueba,hr' })
   })
 
+  it('el almacén escribe: sus sesiones no son de solo lectura', () => {
+    expect(opcionesPostgres({ ...d, esquema: 'kalc' }, { soloLectura: false }).options).toBe('-c search_path=kalc')
+  })
+
   it('bigint y numeric llegan como números', () => {
     const tipos = opcionesPostgres(d).types as typeof pg.types
     expect(tipos.getTypeParser(pg.types.builtins.NUMERIC, 'text')('1500.25')).toBe(1500.25)

@@ -1,7 +1,8 @@
 # kalc-backend: la API de variables de Kalc
 
-API en Node + Express sobre Oracle (`oracledb`): guarda las variables de Kalc en la tabla
-`motor_variables` y corre las variables de consulta. Hasta el 14/10/2026 estaba adentro de `kalc`
+API en Node + Express sobre PostgreSQL (`pg`): guarda las variables de Kalc en la tabla
+`motor_variables` y corre las variables de consulta, en PostgreSQL o en las bases Oracle que se le
+conecten (`oracledb`). Hasta el 14/10/2026 estaba adentro de `kalc`
 (`backend/`); se separó para que cada parte tenga su carpeta.
 
 ## Las tres partes
@@ -19,8 +20,9 @@ están en el README general, `../README.md`.
 
 ## Stack
 
-- Node 22.12+ en desarrollo, corre los `.ts` directo (imports con `.ts`, `erasableSyntaxOnly`).
-- Express 5, `oracledb` 7 (thin; thick si el `.env` tiene `ORACLE_CLIENTE`), `pg` 8, Vitest, TypeScript ~6.
+- Node 22.12+ en desarrollo, corre los `.ts` directo con `--experimental-strip-types` (imports con
+  `.ts`, `erasableSyntaxOnly`); sin esa opción, recién anda desde Node 22.18.
+- Express 5, `pg` 8, `oracledb` 7 (solo para consultas; thin, thick si el `.env` tiene `ORACLE_CLIENTE`), Vitest, TypeScript ~6.
 - `tsconfig.json` solo chequea tipos, con `lib: ES2022`: el servidor puede tener **Node 18**.
   `tsconfig.publicacion.json` compila a `publicacion/servidor/`.
 - Instalar con `npm install` (npm 11; con el `npm` 10 que viene con algunos Node da `Cannot read
@@ -28,21 +30,23 @@ están en el README general, `../README.md`.
 
 ## Base
 
-`db/oracle/variables.sql` crea la tabla (id por secuencia + trigger, origen JSON en CLOB, nombre
-único por UPPER; sin `IDENTITY` ni `IS JSON`, para bases con `COMPATIBLE` 11);
-`variables-1.2.0.sql` y `variables-1.3.0.sql` son migraciones de tablas viejas. Con una clave con
-el verificador 10g, el modo thin la rechaza (NJS-116): modo thick con `ORACLE_CLIENTE` (Instant
-Client 19+; un cliente 12.2 no sirve).
+El almacén es PostgreSQL: `db/postgres/variables.sql` crea `kalc.motor_variables` (id identity,
+origen y columnas en JSON como text, nombre único por upper), y `src/repositorioPostgres.ts` la usa.
+`crear.sql` la carga junto con los ejemplos y no la borra al volver a correrlo. Oracle no guarda
+nada: es solo una base posible para las consultas.
 
 Varias conexiones con nombre (`CONEXIONES`, ver `src/conexiones.ts` y `.env.example`): el almacén
-(`motor_variables`, siempre Oracle) y las conexiones donde corren las consultas (`CONSULTAS`, la
-primera es la de por defecto). Las consultas van siempre en una transacción de solo lectura.
+(`ALMACEN`, siempre PostgreSQL, con un usuario que escribe: `kalc`) y las conexiones donde corren
+las consultas (`CONSULTAS`, la primera es la de por defecto). La del almacén es la única que no abre
+sesiones de solo lectura, y las consultas van siempre en una transacción de solo lectura.
 
-Una conexión puede ser PostgreSQL (`POSTGRES_<NOMBRE>_*`, `src/postgres.ts`, driver `pg`), solo
-para consultas. En desarrollo, `local`: PostgreSQL en `localhost:5432`, base `kalc`, usuario
-`kalc_lectura`, esquemas `juzgado` (el de las variables iniciales de kalc-frontend), `hr`, `scott`
-(los de ejemplo de Oracle) y `prueba`, creados con `db/postgres/crear.sql`. Todos los datos son
-inventados. `x::int` no es un parámetro desde Kalc 1.5.1.
+En desarrollo, `local`: PostgreSQL en `localhost:5432`, base `kalc`, usuario `kalc_lectura`,
+esquemas `kalc_data` (el de las variables iniciales de kalc-frontend), `hr`, `scott` y `prueba`.
+Todos los datos son inventados. `x::int` no es un parámetro desde Kalc 1.5.1.
+
+Una conexión puede ser Oracle (`ORACLE_<NOMBRE>_*`), solo para consultas (`ejecutorOracle` en
+`src/consultas.ts`). Con una clave con el verificador 10g, el modo thin la rechaza (NJS-116): modo
+thick con `ORACLE_CLIENTE` (Instant Client 19+; un cliente 12.2 no sirve).
 
 ## Despliegue
 
@@ -60,8 +64,8 @@ Nada de ejecución remota (WinRM, `schtasks /S`). Después de cambiar el `.env`,
 
 ## Tests
 
-- Vitest, tests al lado del código (`src/*.test.ts`). Oracle no se toca: los tests pasan pools
-  falsos (`Pool`, `PoolConsultas`) y un repositorio en memoria.
+- Vitest, tests al lado del código (`src/*.test.ts`). Las bases no se tocan: los tests pasan pools
+  falsos (`PoolPostgres`, `PoolConsultas`) y un repositorio en memoria.
 - Nada de lógica nueva sin test.
 
 ## Estilo
