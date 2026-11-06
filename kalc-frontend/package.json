@@ -1,6 +1,6 @@
 {
   "name": "kalc-frontend",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "repository": "https://github.com/fmance66/kalc",
   "description": "Kalc en el navegador: probador de fórmulas, variables (en PostgreSQL a través de kalc-backend, o en el navegador), catálogo de funciones y ayuda.",
